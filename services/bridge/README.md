@@ -11,19 +11,19 @@ Handles:
 
 
 ## Downloading the server
-[Prebuilt binaries](https://github.com/stellar/bridge-server/releases) of the bridge-server server are available on the [releases page](https://github.com/stellar/bridge-server/releases).
+[Prebuilt binaries](https://github.com/caoxuwen/bridge-server/releases) of the bridge-server server are available on the [releases page](https://github.com/caoxuwen/bridge-server/releases).
 
 | Platform       | Binary file name                                                                         |
 |----------------|------------------------------------------------------------------------------------------|
-| Mac OSX 64 bit | [bridge-darwin-amd64](https://github.com/stellar/bridge-server/releases)      |
-| Linux 64 bit   | [bridge-linux-amd64](https://github.com/stellar/bridge-server/releases)       |
-| Windows 64 bit | [bridge-windows-amd64.exe](https://github.com/stellar/bridge-server/releases) |
+| Mac OSX 64 bit | [bridge-darwin-amd64](https://github.com/caoxuwen/bridge-server/releases)      |
+| Linux 64 bit   | [bridge-linux-amd64](https://github.com/caoxuwen/bridge-server/releases)       |
+| Windows 64 bit | [bridge-windows-amd64.exe](https://github.com/caoxuwen/bridge-server/releases) |
 
 Alternatively, you can [build](#building) the binary yourself.
 
 ## Config
 
-The `bridge.cfg` file must be present in a working directory (you can load another file by using `-c` parameter). Here is an [example configuration file](https://github.com/stellar/bridge-server/blob/master/bridge_example.cfg). Config file should contain following values:
+The `bridge.cfg` file must be present in a working directory (you can load another file by using `-c` parameter). Here is an [example configuration file](https://github.com/caoxuwen/bridge-server/blob/master/bridge_example.cfg). Config file should contain following values:
 
 * `port` - server listening port
 * `api_key` - when set, all requests to bridge server must contain `api_key` parameter with a correct value, otherwise the server will respond with `503 Forbidden`
@@ -31,7 +31,7 @@ The `bridge.cfg` file must be present in a working directory (you can load anoth
    * test network: `Test SDF Network ; September 2015`
    * public network: `Public Global Stellar Network ; September 2015`
 * `compliance` - URL to compliance server instance if you want to carry out the compliance protocol
-* `horizon` - URL to [horizon](https://github.com/stellar/horizon) server instance
+* `horizon` - URL to [horizon](https://github.com/caoxuwen/horizon) server instance
 * `assets` - array of approved assets codes that this server can authorize or receive. These are currency code/issuer pairs. Use asset code 'XLM' with no issuer to listen for XLM payments. See [`bridge_example.cfg`](./bridge_example.cfg) for example.
 * `database`
   * `type` - database type (mysql, postgres)
@@ -88,7 +88,7 @@ Creates a new random key pair.
 ```
 
 In case of error it will return the following error:
-* [`InternalServerError`](/src/github.com/stellar/gateway/protocols/errors.go)
+* [`InternalServerError`](/src/github.com/caoxuwen/gateway/protocols/errors.go)
 
 ### POST /builder
 
@@ -260,8 +260,8 @@ When transaction can be successfully built it will return a JSON object with a s
 ```
 
 In case of error it will return one of the following errors:
-* [`InternalServerError`](/src/github.com/stellar/gateway/protocols/errors.go)
-* [`InvalidParameterError`](/src/github.com/stellar/gateway/protocols/errors.go)
+* [`InternalServerError`](/src/github.com/caoxuwen/gateway/protocols/errors.go)
+* [`InvalidParameterError`](/src/github.com/caoxuwen/gateway/protocols/errors.go)
 
 ### POST /payment
 
@@ -289,7 +289,7 @@ name |  | description
 `memo_type` | optional | Memo type, one of: `id`, `text`, `hash`, `extra`
 `memo` | optional | Memo value, `id` it must be uint64, when `hash` it must be 32 bytes hex value.
 `use_compliance` | optional | When `true` Bridge will use Compliance protocol even if `extra_memo` is empty.
-`extra_memo` | optional | You can include any info here and it will be included in the pre-image of the transaction's memo hash. See the [Stellar Memo Convention](https://github.com/stellar/stellar-protocol/issues/28). When set and compliance server is connected, `memo` and `memo_type` values will be ignored.
+`extra_memo` | optional | You can include any info here and it will be included in the pre-image of the transaction's memo hash. See the [Stellar Memo Convention](https://github.com/caoxuwen/stellar-protocol/issues/28). When set and compliance server is connected, `memo` and `memo_type` values will be ignored.
 `asset_code` | optional | Asset code (XLM when empty) destination will receive
 `asset_issuer` | optional | Account ID of asset issuer (XLM when empty) destination will receive
 `send_max` | optional | [path_payment] Maximum amount of send_asset to send
@@ -317,35 +317,35 @@ https://FEDERATION_SERVER_READ_FROM_STELLAR_TOML/federation?type=forward&forward
 
 #### Response
 
-It will return [`SubmitTransactionResponse`](/src/github.com/stellar/gateway/horizon/submit_transaction_response.go) if there were no errors or with one of the following errors:
+It will return [`SubmitTransactionResponse`](/src/github.com/caoxuwen/gateway/horizon/submit_transaction_response.go) if there were no errors or with one of the following errors:
 
-* [`InternalServerError`](/src/github.com/stellar/gateway/protocols/errors.go)
-* [`InvalidParameterError`](/src/github.com/stellar/gateway/protocols/errors.go)
-* [`MissingParameterError`](/src/github.com/stellar/gateway/protocols/errors.go)
-* [`TransactionBadSequence`](/src/github.com/stellar/gateway/protocols/bridge/errors.go)
-* [`TransactionBadAuth`](/src/github.com/stellar/gateway/protocols/bridge/errors.go)
-* [`TransactionInsufficientBalance`](/src/github.com/stellar/gateway/protocols/bridge/errors.go)
-* [`TransactionNoAccount`](/src/github.com/stellar/gateway/protocols/bridge/errors.go)
-* [`TransactionInsufficientFee`](/src/github.com/stellar/gateway/protocols/bridge/errors.go)
-* [`TransactionBadAuthExtra`](/src/github.com/stellar/gateway/protocols/bridge/errors.go)
-* [`PaymentCannotResolveDestination`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentCannotUseMemo`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentSourceNotExist`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentAssetCodeNotAllowed`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentPending`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentDenied`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentMalformed`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentUnderfunded`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentSrcNoTrust`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentSrcNotAuthorized`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentNoDestination`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentNoTrust`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentNotAuthorized`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentLineFull`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentNoIssuer`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentTooFewOffers`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentOfferCrossSelf`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
-* [`PaymentOverSendmax`](/src/github.com/stellar/gateway/protocols/bridge/payment.go)
+* [`InternalServerError`](/src/github.com/caoxuwen/gateway/protocols/errors.go)
+* [`InvalidParameterError`](/src/github.com/caoxuwen/gateway/protocols/errors.go)
+* [`MissingParameterError`](/src/github.com/caoxuwen/gateway/protocols/errors.go)
+* [`TransactionBadSequence`](/src/github.com/caoxuwen/gateway/protocols/bridge/errors.go)
+* [`TransactionBadAuth`](/src/github.com/caoxuwen/gateway/protocols/bridge/errors.go)
+* [`TransactionInsufficientBalance`](/src/github.com/caoxuwen/gateway/protocols/bridge/errors.go)
+* [`TransactionNoAccount`](/src/github.com/caoxuwen/gateway/protocols/bridge/errors.go)
+* [`TransactionInsufficientFee`](/src/github.com/caoxuwen/gateway/protocols/bridge/errors.go)
+* [`TransactionBadAuthExtra`](/src/github.com/caoxuwen/gateway/protocols/bridge/errors.go)
+* [`PaymentCannotResolveDestination`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentCannotUseMemo`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentSourceNotExist`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentAssetCodeNotAllowed`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentPending`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentDenied`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentMalformed`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentUnderfunded`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentSrcNoTrust`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentSrcNotAuthorized`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentNoDestination`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentNoTrust`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentNotAuthorized`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentLineFull`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentNoIssuer`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentTooFewOffers`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentOfferCrossSelf`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
+* [`PaymentOverSendmax`](/src/github.com/caoxuwen/gateway/protocols/bridge/payment.go)
 
 #### Example
 
@@ -376,21 +376,21 @@ name |  | description
 
 #### Response
 
-It will return [`SubmitTransactionResponse`](/src/github.com/stellar/gateway/horizon/submit_transaction_response.go) if there were no errors or with one of the following errors:
+It will return [`SubmitTransactionResponse`](/src/github.com/caoxuwen/gateway/horizon/submit_transaction_response.go) if there were no errors or with one of the following errors:
 
-* [`InternalServerError`](/src/github.com/stellar/gateway/protocols/errors.go)
-* [`InvalidParameterError`](/src/github.com/stellar/gateway/protocols/errors.go)
-* [`MissingParameterError`](/src/github.com/stellar/gateway/protocols/errors.go)
-* [`TransactionBadSequence`](/src/github.com/stellar/gateway/protocols/bridge/errors.go)
-* [`TransactionBadAuth`](/src/github.com/stellar/gateway/protocols/bridge/errors.go)
-* [`TransactionInsufficientBalance`](/src/github.com/stellar/gateway/protocols/bridge/errors.go)
-* [`TransactionNoAccount`](/src/github.com/stellar/gateway/protocols/bridge/errors.go)
-* [`TransactionInsufficientFee`](/src/github.com/stellar/gateway/protocols/bridge/errors.go)
-* [`TransactionBadAuthExtra`](/src/github.com/stellar/gateway/protocols/bridge/errors.go)
-* [`AllowTrustMalformed`](/src/github.com/stellar/gateway/protocols/bridge/authorize.go)
-* [`AllowTrustNoTrustline`](/src/github.com/stellar/gateway/protocols/bridge/authorize.go)
-* [`AllowTrustTrustNotRequired`](/src/github.com/stellar/gateway/protocols/bridge/authorize.go)
-* [`AllowTrustCantRevoke`](/src/github.com/stellar/gateway/protocols/bridge/authorize.go)
+* [`InternalServerError`](/src/github.com/caoxuwen/gateway/protocols/errors.go)
+* [`InvalidParameterError`](/src/github.com/caoxuwen/gateway/protocols/errors.go)
+* [`MissingParameterError`](/src/github.com/caoxuwen/gateway/protocols/errors.go)
+* [`TransactionBadSequence`](/src/github.com/caoxuwen/gateway/protocols/bridge/errors.go)
+* [`TransactionBadAuth`](/src/github.com/caoxuwen/gateway/protocols/bridge/errors.go)
+* [`TransactionInsufficientBalance`](/src/github.com/caoxuwen/gateway/protocols/bridge/errors.go)
+* [`TransactionNoAccount`](/src/github.com/caoxuwen/gateway/protocols/bridge/errors.go)
+* [`TransactionInsufficientFee`](/src/github.com/caoxuwen/gateway/protocols/bridge/errors.go)
+* [`TransactionBadAuthExtra`](/src/github.com/caoxuwen/gateway/protocols/bridge/errors.go)
+* [`AllowTrustMalformed`](/src/github.com/caoxuwen/gateway/protocols/bridge/authorize.go)
+* [`AllowTrustNoTrustline`](/src/github.com/caoxuwen/gateway/protocols/bridge/authorize.go)
+* [`AllowTrustTrustNotRequired`](/src/github.com/caoxuwen/gateway/protocols/bridge/authorize.go)
+* [`AllowTrustCantRevoke`](/src/github.com/caoxuwen/gateway/protocols/bridge/authorize.go)
 
 ### POST /reprocess
 Can be used to reprocess received payment.
@@ -475,6 +475,6 @@ godoc -goroot=. -http=:6060
 
 Then simply open:
 ```
-http://localhost:6060/pkg/github.com/stellar/gateway/
+http://localhost:6060/pkg/github.com/caoxuwen/gateway/
 ```
 in a browser.

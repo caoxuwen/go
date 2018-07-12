@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stellar/go/support/errors"
-	"github.com/stellar/go/support/http/httptest"
+	"github.com/caoxuwen/go/support/errors"
+	"github.com/caoxuwen/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 )
 

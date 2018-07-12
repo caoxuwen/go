@@ -1,10 +1,10 @@
 package operations
 
 import (
-	"github.com/stellar/go/protocols/horizon/base"
-	"github.com/stellar/go/support/render/hal"
+	"github.com/caoxuwen/go/protocols/horizon/base"
+	"github.com/caoxuwen/go/support/render/hal"
 	"time"
-	"github.com/stellar/go/xdr"
+	"github.com/caoxuwen/go/xdr"
 )
 
 // OperationTypeNames maps from operation type to the string used to represent that type

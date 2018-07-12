@@ -1,10 +1,10 @@
 package horizon
 
 import (
-	"github.com/stellar/go/protocols/horizon"
-	"github.com/stellar/go/services/horizon/internal/paths"
-	"github.com/stellar/go/services/horizon/internal/resourceadapter"
-	"github.com/stellar/go/support/render/hal"
+	"github.com/caoxuwen/go/protocols/horizon"
+	"github.com/caoxuwen/go/services/horizon/internal/paths"
+	"github.com/caoxuwen/go/services/horizon/internal/resourceadapter"
+	"github.com/caoxuwen/go/support/render/hal"
 )
 
 // PathIndexAction provides path finding

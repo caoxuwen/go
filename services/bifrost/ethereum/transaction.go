@@ -3,7 +3,7 @@ package ethereum
 import (
 	"math/big"
 
-	"github.com/stellar/go/services/bifrost/common"
+	"github.com/caoxuwen/go/services/bifrost/common"
 )
 
 func (t Transaction) ValueToStellar() string {

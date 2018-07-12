@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	b "github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
-	"github.com/stellar/go/network"
+	b "github.com/caoxuwen/go/build"
+	"github.com/caoxuwen/go/clients/horizon"
+	"github.com/caoxuwen/go/network"
 )
 
 func main() {

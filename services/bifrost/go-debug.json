@@ -1,0 +1,8 @@
+{"configurations":
+  [{
+  "name": "Debug bifrost",
+  "mode": "debug",
+  "cwd": "${workspaceRoot}",
+  "args": ["server", "-c", "/home/xpc/go/src/github.com/caoxuwen/go/services/bifrost/bifrost.cfg"]
+  }]
+}

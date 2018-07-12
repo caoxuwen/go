@@ -23,7 +23,7 @@ Please migrate your `compliance` DB before running a new version using: `complia
 * Improved transaction submission code:
   * High rate transaction submission using `/payment` endpoint should work better.
   * Added `id` parameter to `/payment` request: payments with `id` set, when resubmitted, are using previously created transaction envelope stored in a DB instead of recreating a transaction with a new sequence number. This can prevent accidental double-spends.
-* Fix for a bug in `/builder` endpoint: sequence number is now incremented when loaded from Horizon server (https://github.com/stellar/bridge-server/issues/86).
+* Fix for a bug in `/builder` endpoint: sequence number is now incremented when loaded from Horizon server (https://github.com/caoxuwen/bridge-server/issues/86).
 * Payment listener is now also sending `account_merge` operations and, for each operation, a new parameter: `transaction_id`.
 * Updated `github.com/BurntSushi/toml` dependency.
 
@@ -33,12 +33,12 @@ Please migrate your `bridge` DB before running a new version using: `bridge --mi
 
 ## 0.0.28
 
-* Added error messages to Compliance protocol ([SEP-0003](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0003.md))
+* Added error messages to Compliance protocol ([SEP-0003](https://github.com/caoxuwen/stellar-protocol/blob/master/ecosystem/sep-0003.md))
 
 ## 0.0.27
 
 * Admin Panel (`/admin` endpoint in `bridge` server).
-* `/tx_status` endpoint [More info](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md).
+* `/tx_status` endpoint [More info](https://github.com/caoxuwen/stellar-protocol/blob/master/ecosystem/sep-0001.md).
 * Sequence number in automatically loaded if it's not set in `/builder`.
 * Fixed log levels in `PaymentListener` (#73).
 * Fixed `AllowedFI` table name under Windows (#72).
@@ -72,7 +72,7 @@ Please migrate your `bridge` DB before running a new version using: `bridge --mi
 
 ## 0.0.20
 
-* Update `github.com/stellar/go` dependency.
+* Update `github.com/caoxuwen/go` dependency.
 
 ## 0.0.19
 

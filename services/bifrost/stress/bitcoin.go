@@ -11,9 +11,9 @@ import (
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
+	"github.com/caoxuwen/go/services/bifrost/common"
+	"github.com/caoxuwen/go/support/log"
 	"github.com/haltingstate/secp256k1-go"
-	"github.com/stellar/go/services/bifrost/common"
-	"github.com/stellar/go/support/log"
 )
 
 func (c *RandomBitcoinClient) Start(addresses <-chan string) {

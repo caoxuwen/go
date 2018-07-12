@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	proto "github.com/stellar/go/protocols/stellarcore"
-	"github.com/stellar/go/support/http/httptest"
+	proto "github.com/caoxuwen/go/protocols/stellarcore"
+	"github.com/caoxuwen/go/support/http/httptest"
 	"github.com/stretchr/testify/assert"
 )
 

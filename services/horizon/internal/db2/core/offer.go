@@ -6,8 +6,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/go-errors/errors"
-	"github.com/stellar/go/services/horizon/internal/db2"
-	"github.com/stellar/go/xdr"
+	"github.com/caoxuwen/go/services/horizon/internal/db2"
+	"github.com/caoxuwen/go/xdr"
 )
 
 // PagingToken returns a suitable paging token for the Offer

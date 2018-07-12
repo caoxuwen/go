@@ -12,11 +12,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/services/bifrost/common"
-	"github.com/stellar/go/services/bifrost/server"
+	"github.com/caoxuwen/go/build"
+	"github.com/caoxuwen/go/clients/horizon"
+	"github.com/caoxuwen/go/keypair"
+	"github.com/caoxuwen/go/services/bifrost/common"
+	"github.com/caoxuwen/go/services/bifrost/server"
 )
 
 func (u *Users) Start(accounts chan<- server.GenerateAddressResponse) {

@@ -1,5 +1,5 @@
 GIT
-  remote: https://github.com/stellar/stellar_core_commander.git
+  remote: https://github.com/caoxuwen/stellar_core_commander.git
   revision: 1484815a5a53382e9d42b28e66e5ca1a917b824c
   branch: master
   specs:
@@ -15,7 +15,7 @@ GIT
       typhoeus (~> 0.8.0)
 
 GIT
-  remote: https://github.com/stellar/xdrgen.git
+  remote: https://github.com/caoxuwen/xdrgen.git
   revision: e29a93e248f2ae97ec783949676b4293a67b768e
   branch: master
   specs:

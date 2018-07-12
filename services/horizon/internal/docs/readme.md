@@ -11,13 +11,13 @@ SDF runs a instance of Horizon that is connected to the test net [https://horizo
 ## Libraries
 
 SDF maintained libraries:<br />
-- [JavaScript](https://github.com/stellar/js-stellar-sdk)
-- [Java](https://github.com/stellar/java-stellar-sdk)
-- [Go](https://github.com/stellar/go)
+- [JavaScript](https://github.com/caoxuwen/js-stellar-sdk)
+- [Java](https://github.com/caoxuwen/java-stellar-sdk)
+- [Go](https://github.com/caoxuwen/go)
 
 Community maintained libraries (in various states of completeness) for interacting with Horizon in other languages:<br>
-- [Ruby](https://github.com/stellar/ruby-stellar-sdk)
-- [Python](https://github.com/StellarCN/py-stellar-base)
+- [Ruby](https://github.com/caoxuwen/ruby-stellar-sdk)
+- [Python](https://github.com/caoxuwenCN/py-stellar-base)
 - [C# .NET 2.0](https://github.com/QuantozTechnology/csharp-stellar-base)
 - [C# .NET Core 2.x](https://github.com/elucidsoft/dotnetcore-stellar-sdk)
 - [C++](https://bitbucket.org/bnogal/stellarqore/wiki/Home)

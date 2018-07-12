@@ -7,9 +7,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/stellar/go/address"
-	proto "github.com/stellar/go/protocols/federation"
-	"github.com/stellar/go/support/errors"
+	"github.com/caoxuwen/go/address"
+	proto "github.com/caoxuwen/go/protocols/federation"
+	"github.com/caoxuwen/go/support/errors"
 )
 
 // LookupByAddress performs a federated lookup following to the stellar

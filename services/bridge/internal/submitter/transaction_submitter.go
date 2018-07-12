@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/services/bridge/internal/db"
-	shared "github.com/stellar/go/services/internal/bridge-compliance-shared"
-	"github.com/stellar/go/support/errors"
-	"github.com/stellar/go/xdr"
+	"github.com/caoxuwen/go/build"
+	"github.com/caoxuwen/go/clients/horizon"
+	"github.com/caoxuwen/go/keypair"
+	"github.com/caoxuwen/go/services/bridge/internal/db"
+	shared "github.com/caoxuwen/go/services/internal/bridge-compliance-shared"
+	"github.com/caoxuwen/go/support/errors"
+	"github.com/caoxuwen/go/xdr"
 )
 
 // TransactionSubmitterInterface helps mocking TransactionSubmitter

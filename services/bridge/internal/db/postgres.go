@@ -3,8 +3,8 @@ package db
 import (
 	"database/sql"
 
-	"github.com/stellar/go/support/db"
-	"github.com/stellar/go/support/errors"
+	"github.com/caoxuwen/go/support/db"
+	"github.com/caoxuwen/go/support/errors"
 )
 
 const (

@@ -7,10 +7,10 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/caoxuwen/go/services/bifrost/common"
+	"github.com/caoxuwen/go/support/log"
 	ethereumCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/stellar/go/services/bifrost/common"
-	"github.com/stellar/go/support/log"
 )
 
 func (c *RandomEthereumClient) Start(addresses <-chan string) {
@@ -70,7 +70,7 @@ func (g *RandomEthereumClient) generateBlocks() {
 				uint64(i),
 				g.randomAddress(),
 				g.randomAmount(),
-				big.NewInt(1),
+				big.NewInt(1).Uint64(),
 				big.NewInt(2),
 				[]byte{0, 0, 0, 0},
 			)

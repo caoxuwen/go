@@ -16,7 +16,7 @@ bumps.  A breaking change will get clearly notified in this log.
 
 - BREAKING CHANGE: Streaming connections will no longer wait until the first SSE message before sending the SSE preamble and establishing the streaming connection.
 - BREAKING CHANGE: SSE requests will no longer respond with regular HTTP error (i.e. a non-200 status) if the error occurred prior to sending the first SSE message.
-- Above changes have been reverted in [#446](https://github.com/stellar/go/pull/446).
+- Above changes have been reverted in [#446](https://github.com/caoxuwen/go/pull/446).
 - dropped support for go1.8 since we need big.IsInt64 from math/big in our findpaths calculations
 
 ## v0.12.3 - 2017-03-20
@@ -41,7 +41,7 @@ This release is a bug fix release for v0.12.0.  *Please see the upgrade notes be
 
 ### Bug fixes
 
-- Fixed an issue caused by un-migrated trade rows. (https://github.com/stellar/go/issues/357)
+- Fixed an issue caused by un-migrated trade rows. (https://github.com/caoxuwen/go/issues/357)
 - Command line flags are now useable for subcommands of horizon.
 
 
@@ -68,7 +68,7 @@ Since this release changes both the schema and the data ingestion system, we rec
 ### Bug fixes
 
 - Ingestion performance and stability has been improved. 
-- Changes to an account's inflation destination no longer produce erroneous "signer_updated" effects. (https://github.com/stellar/horizon/issues/390)
+- Changes to an account's inflation destination no longer produce erroneous "signer_updated" effects. (https://github.com/caoxuwen/horizon/issues/390)
 
 
 ### Changed
@@ -91,7 +91,7 @@ Since this release changes both the schema and the data ingestion system, we rec
 - The ingestion system can now properly import envelopes that contain signatures that are zero-length strings.
 - BREAKING CHANGE: specifying a `limit` of `0` now triggers an error instead of interpreting the value to mean "use the default limit".
 - Requests that ask for more records than the maximum page size now trigger a bad request error, instead of an internal server error.
-- Upstream bug fixes to xdr decoding from `github.com/stellar/go`.
+- Upstream bug fixes to xdr decoding from `github.com/caoxuwen/go`.
 
 ### Changed
 
@@ -262,20 +262,20 @@ This release contains the initial implementation of the "Abridged History System
 ### Added
 - Github releases are created from tagged travis builds automatically
 
-[v0.11.0]: https://github.com/stellar/horizon/compare/v0.10.1...v0.11.0
-[v0.10.1]: https://github.com/stellar/horizon/compare/v0.10.0...v0.10.1
-[v0.10.0]: https://github.com/stellar/horizon/compare/v0.9.1...v0.10.0
-[v0.9.1]: https://github.com/stellar/horizon/compare/v0.9.0...v0.9.1
-[v0.9.0]: https://github.com/stellar/horizon/compare/v0.8.0...v0.9.0
-[v0.8.0]: https://github.com/stellar/horizon/compare/v0.7.1...v0.8.0
-[v0.7.1]: https://github.com/stellar/horizon/compare/v0.7.0...v0.7.1
-[v0.7.0]: https://github.com/stellar/horizon/compare/v0.6.2...v0.7.0
-[v0.6.2]: https://github.com/stellar/horizon/compare/v0.6.1...v0.6.2
-[v0.6.1]: https://github.com/stellar/horizon/compare/v0.6.0...v0.6.1
-[v0.6.0]: https://github.com/stellar/horizon/compare/v0.5.1...v0.6.0
-[v0.5.1]: https://github.com/stellar/horizon/compare/v0.5.0...v0.5.1
-[v0.5.0]: https://github.com/stellar/horizon/compare/v0.4.0...v0.5.0
-[v0.4.0]: https://github.com/stellar/horizon/compare/v0.3.0...v0.4.0
-[v0.3.0]: https://github.com/stellar/horizon/compare/v0.2.0...v0.3.0
-[v0.2.0]: https://github.com/stellar/horizon/compare/v0.1.1...v0.2.0
-[v0.1.1]: https://github.com/stellar/horizon/compare/v0.1.0...v0.1.1
+[v0.11.0]: https://github.com/caoxuwen/horizon/compare/v0.10.1...v0.11.0
+[v0.10.1]: https://github.com/caoxuwen/horizon/compare/v0.10.0...v0.10.1
+[v0.10.0]: https://github.com/caoxuwen/horizon/compare/v0.9.1...v0.10.0
+[v0.9.1]: https://github.com/caoxuwen/horizon/compare/v0.9.0...v0.9.1
+[v0.9.0]: https://github.com/caoxuwen/horizon/compare/v0.8.0...v0.9.0
+[v0.8.0]: https://github.com/caoxuwen/horizon/compare/v0.7.1...v0.8.0
+[v0.7.1]: https://github.com/caoxuwen/horizon/compare/v0.7.0...v0.7.1
+[v0.7.0]: https://github.com/caoxuwen/horizon/compare/v0.6.2...v0.7.0
+[v0.6.2]: https://github.com/caoxuwen/horizon/compare/v0.6.1...v0.6.2
+[v0.6.1]: https://github.com/caoxuwen/horizon/compare/v0.6.0...v0.6.1
+[v0.6.0]: https://github.com/caoxuwen/horizon/compare/v0.5.1...v0.6.0
+[v0.5.1]: https://github.com/caoxuwen/horizon/compare/v0.5.0...v0.5.1
+[v0.5.0]: https://github.com/caoxuwen/horizon/compare/v0.4.0...v0.5.0
+[v0.4.0]: https://github.com/caoxuwen/horizon/compare/v0.3.0...v0.4.0
+[v0.3.0]: https://github.com/caoxuwen/horizon/compare/v0.2.0...v0.3.0
+[v0.2.0]: https://github.com/caoxuwen/horizon/compare/v0.1.1...v0.2.0
+[v0.1.1]: https://github.com/caoxuwen/horizon/compare/v0.1.0...v0.1.1

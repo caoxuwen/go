@@ -5,10 +5,10 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/caoxuwen/go/services/bifrost/common"
+	"github.com/caoxuwen/go/support/errors"
+	"github.com/caoxuwen/go/support/log"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/stellar/go/services/bifrost/common"
-	"github.com/stellar/go/support/errors"
-	"github.com/stellar/go/support/log"
 )
 
 func (l *Listener) Start(rpcServer string) error {
@@ -54,7 +54,7 @@ func (l *Listener) processBlocks(blockNumber uint64) {
 	for {
 		block, err := l.getBlock(blockNumber)
 		if err != nil {
-			l.log.WithFields(log.F{"err": err, "blockNumber": blockNumber}).Error("Error getting block")
+			//l.log.WithFields(log.F{"err": err, "blockNumber": blockNumber}).Error("Error getting block")
 			time.Sleep(1 * time.Second)
 			continue
 		}
@@ -116,7 +116,7 @@ func (l *Listener) getBlock(blockNumber uint64) (*types.Block, error) {
 			return nil, nil
 		}
 		err = errors.Wrap(err, "Error getting block from geth")
-		l.log.WithField("block", blockNumberInt.String()).Error(err)
+		//l.log.WithField("block", blockNumberInt.String()).Error(err)
 		return nil, err
 	}
 
@@ -125,14 +125,14 @@ func (l *Listener) getBlock(blockNumber uint64) (*types.Block, error) {
 
 func (l *Listener) processBlock(block *types.Block) error {
 	transactions := block.Transactions()
-	blockTime := time.Unix(block.Time().Int64(), 0)
+	/* blockTime := time.Unix(block.Time().Int64(), 0)
 
 	localLog := l.log.WithFields(log.F{
 		"blockNumber":  block.NumberU64(),
 		"blockTime":    blockTime,
 		"transactions": len(transactions),
 	})
-	localLog.Info("Processing block")
+	localLog.Info("Processing block")*/
 
 	for _, transaction := range transactions {
 		to := transaction.To()
@@ -152,7 +152,7 @@ func (l *Listener) processBlock(block *types.Block) error {
 		}
 	}
 
-	localLog.Info("Processed block")
+	//localLog.Info("Processed block")
 
 	return nil
 }

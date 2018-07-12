@@ -18,11 +18,11 @@ It solves many problems connected to moving tokens to Stellar network:
 
 We are releasing the **alpha version** of this software. We encourage our community of developers to test and improve it.
 
-Download the binary from [the release page](https://github.com/stellar/go/releases/tag/bifrost-v0.0.2) and use it with it's [Bifrost JS SDK](https://github.com/stellar/bifrost-js-sdk).
+Download the binary from [the release page](https://github.com/caoxuwen/go/releases/tag/bifrost-v0.0.2) and use it with it's [Bifrost JS SDK](https://github.com/caoxuwen/bifrost-js-sdk).
 
 ## How it works
 
-1. User opens the web app implemented using [Bifrost JS SDK](https://github.com/stellar/bifrost-js-sdk).
+1. User opens the web app implemented using [Bifrost JS SDK](https://github.com/caoxuwen/bifrost-js-sdk).
 1. User is presented with her public and private Stellar keys where Bitcoin/Ethereum will be sent.
 1. User selects what cryptocurrency she wants to move to Stellar network.
 1. A receiving Bitcoin/Ethereum address is generated.
@@ -68,7 +68,7 @@ https://bifrost.stellar.org/
   * `issuer_public_key` - public key of the assets issuer (see "Account configuration" section),
   * `distribution_public_key` - public key of the distribution account, it can be the same as issuer but it's recommended to use a separate account, it's also used to fund new accounts (see "Account configuration" section)
   * `signer_secret_key` - distribuions accounts's secret key if only one instance of Bifrost is deployed OR [channel](https://www.stellar.org/developers/guides/channels.html)'s secret key if more than one instance of Bifrost is deployed, signer is also used as a temporary signer in new accounts (see "Account configuration" section)
-  * `horizon` - URL to [horizon](https://github.com/stellar/go/tree/master/services/horizon) server
+  * `horizon` - URL to [horizon](https://github.com/caoxuwen/go/tree/master/services/horizon) server
   * `network_passphrase` - Stellar network passphrase (`Public Global Stellar Network ; September 2015` for production network, `Test SDF Network ; September 2015` for test network)
   * `starting_balance` - Stellar XLM amount issued to created account (41 by default)
   * `lock_unix_timestamp` - Unix timestamp (in seconds) of a date until funds will be locked in a new account (helpful if you want to disallow trading during token sale)
@@ -144,7 +144,7 @@ Here is a list of possible reasons why Bifrost may not process transactions:
 
 You need to submit a special transaction that "unlocks" the account by removing the temporary signer and adding back user's master key. This can be done by everyone: user or organization that runs Bifrost. Transaction can be found in:
 
-* `Bifrost.ExchangedTimelockedEvent` [event](https://github.com/stellar/bifrost-js-sdk#oneventevent-data). You can display it to the user if you want your users to unlock accounts.
+* `Bifrost.ExchangedTimelockedEvent` [event](https://github.com/caoxuwen/bifrost-js-sdk#oneventevent-data). You can display it to the user if you want your users to unlock accounts.
 * In database: `recovery_transaction` table. These transactions are independent so you can submit them in any order / at the same time.
 
 #### I don't see answer to my question. What do I do?

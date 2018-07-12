@@ -11,22 +11,22 @@ import (
 
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/rpcclient"
+	"github.com/caoxuwen/go/clients/horizon"
+	"github.com/caoxuwen/go/services/bifrost/bitcoin"
+	"github.com/caoxuwen/go/services/bifrost/config"
+	"github.com/caoxuwen/go/services/bifrost/database"
+	"github.com/caoxuwen/go/services/bifrost/ethereum"
+	"github.com/caoxuwen/go/services/bifrost/server"
+	"github.com/caoxuwen/go/services/bifrost/sse"
+	"github.com/caoxuwen/go/services/bifrost/stellar"
+	"github.com/caoxuwen/go/services/bifrost/stress"
+	supportConfig "github.com/caoxuwen/go/support/config"
+	"github.com/caoxuwen/go/support/errors"
+	"github.com/caoxuwen/go/support/log"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/facebookgo/inject"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/stellar/go/clients/horizon"
-	"github.com/stellar/go/services/bifrost/bitcoin"
-	"github.com/stellar/go/services/bifrost/config"
-	"github.com/stellar/go/services/bifrost/database"
-	"github.com/stellar/go/services/bifrost/ethereum"
-	"github.com/stellar/go/services/bifrost/server"
-	"github.com/stellar/go/services/bifrost/sse"
-	"github.com/stellar/go/services/bifrost/stellar"
-	"github.com/stellar/go/services/bifrost/stress"
-	supportConfig "github.com/stellar/go/support/config"
-	"github.com/stellar/go/support/errors"
-	"github.com/stellar/go/support/log"
 )
 
 var rootCmd = &cobra.Command{
@@ -340,7 +340,7 @@ func createServer(cfg config.Config, stressTest bool) *server.Server {
 		}
 
 		if cfg.Ethereum != nil {
-			ethereumClient, err = ethclient.Dial("http://" + cfg.Ethereum.RpcServer)
+			ethereumClient, err = ethclient.Dial(cfg.Ethereum.RpcServer)
 			if err != nil {
 				log.WithField("err", err).Error("Error connecting to geth")
 				os.Exit(-1)
