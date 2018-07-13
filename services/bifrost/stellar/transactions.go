@@ -32,22 +32,30 @@ func (ac *AccountConfigurator) createAccountTransaction(destination string) erro
 }
 
 // configureAccountTransaction is using a signer on an user accounts to configure the account.
-func (ac *AccountConfigurator) configureAccountTransaction(destination, intermediateAssetCode, amount string, needsAuthorize bool) error {
+func (ac *AccountConfigurator) configureAccountTransaction(account horizon.Account, destination, intermediateAssetCode, amount string, needsAuthorize bool) error {
 	mutators := []build.TransactionMutator{
-		build.Trust(intermediateAssetCode, ac.IssuerPublicKey),
-		build.Trust(ac.TokenAssetCode, ac.IssuerPublicKey),
+		//build.Trust(intermediateAssetCode, ac.IssuerPublicKey),
+		//build.Trust(ac.TokenAssetCode, ac.IssuerPublicKey),
+	}
+
+	if !ac.alreadyTrustAssets(account) {
+		mutators = append(
+			mutators,
+			build.Trust(ac.TokenAssetCode, ac.IssuerPublicKey),
+		)
 	}
 
 	if needsAuthorize {
 		mutators = append(
 			mutators,
 			// Chain token received (BTC/ETH)
-			build.AllowTrust(
-				build.SourceAccount{ac.IssuerPublicKey},
-				build.Trustor{destination},
-				build.AllowTrustAsset{intermediateAssetCode},
-				build.Authorize{true},
-			),
+			/*
+				build.AllowTrust(
+					build.SourceAccount{ac.IssuerPublicKey},
+					build.Trustor{destination},
+					build.AllowTrustAsset{intermediateAssetCode},
+					build.Authorize{true},
+				),*/
 			// Destination token
 			build.AllowTrust(
 				build.SourceAccount{ac.IssuerPublicKey},
@@ -58,15 +66,16 @@ func (ac *AccountConfigurator) configureAccountTransaction(destination, intermed
 		)
 	}
 
-	var tokenPrice string
-	switch intermediateAssetCode {
-	case "BTC":
-		tokenPrice = ac.TokenPriceBTC
-	case "ETH":
-		tokenPrice = ac.TokenPriceETH
-	default:
-		return errors.Errorf("Invalid intermediateAssetCode: $%s", intermediateAssetCode)
-	}
+	/*
+		var tokenPrice string
+		switch intermediateAssetCode {
+		case "BTC":
+			tokenPrice = ac.TokenPriceBTC
+		case "ETH":
+			tokenPrice = ac.TokenPriceETH
+		default:
+			return errors.Errorf("Invalid intermediateAssetCode: $%s", intermediateAssetCode)
+		}*/
 
 	mutators = append(
 		mutators,
@@ -75,23 +84,29 @@ func (ac *AccountConfigurator) configureAccountTransaction(destination, intermed
 			build.SourceAccount{ac.DistributionPublicKey},
 			build.Destination{destination},
 			build.CreditAmount{
-				Code:   intermediateAssetCode,
+				Code:   ac.TokenAssetCode,
 				Issuer: ac.IssuerPublicKey,
 				Amount: amount,
 			},
 		),
 		// Exchange BTC/ETH => token
-		build.CreateOffer(
-			build.Rate{
-				Selling: build.CreditAsset(intermediateAssetCode, ac.IssuerPublicKey),
-				Buying:  build.CreditAsset(ac.TokenAssetCode, ac.IssuerPublicKey),
-				Price:   build.Price(tokenPrice),
-			},
-			build.Amount(amount),
-		),
+		/*
+			build.CreateOffer(
+				build.Rate{
+					Selling: build.CreditAsset(intermediateAssetCode, ac.IssuerPublicKey),
+					Buying:  build.CreditAsset(ac.TokenAssetCode, ac.IssuerPublicKey),
+					Price:   build.Price(tokenPrice),
+				},
+				build.Amount(amount),
+			),*/
 	)
 
-	transaction, err := ac.buildTransaction(destination, ac.SignerSecretKey, mutators...)
+	sourceAddr := destination
+	//if this is already configured account, then have to use our own
+	if ac.alreadyTrustAssets(account) {
+		sourceAddr = ac.IssuerPublicKey
+	}
+	transaction, err := ac.buildTransaction(sourceAddr, ac.SignerSecretKey, mutators...)
 	if err != nil {
 		return errors.Wrap(err, "Error building a transaction")
 	}

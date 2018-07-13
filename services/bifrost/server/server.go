@@ -212,7 +212,7 @@ func (s *Server) handlerGenerateAddress(w stdhttp.ResponseWriter, r *stdhttp.Req
 		return
 	}
 
-	err = s.Database.CreateAddressAssociation(chain, stellarPublicKey, address, index)
+	row, err := s.Database.CreateAddressAssociation(chain, stellarPublicKey, address, index)
 	if err != nil {
 		log.WithFields(log.F{
 			"err":              err,
@@ -231,7 +231,7 @@ func (s *Server) handlerGenerateAddress(w stdhttp.ResponseWriter, r *stdhttp.Req
 	response := GenerateAddressResponse{
 		ProtocolVersion: ProtocolVersion,
 		Chain:           string(chain),
-		Address:         address,
+		Address:         row.Address,
 		Signer:          s.SignerPublicKey,
 	}
 

@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/r3labs/sse"
 	"github.com/caoxuwen/go/services/bifrost/common"
 	"github.com/caoxuwen/go/support/log"
+	"github.com/r3labs/sse"
 )
 
 func (s *Server) init() {
@@ -79,7 +79,6 @@ func (s *Server) publishEvent(address string, event AddressEvent, data []byte) {
 	} else {
 		data = append(data, byte('\n'))
 	}
-
 	s.eventsServer.Publish(address, &sse.Event{
 		ID:    []byte(event),
 		Event: []byte(event),

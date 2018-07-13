@@ -115,13 +115,17 @@ func (ac *AccountConfigurator) ConfigureAccount(destination, assetCode, amount s
 
 	ac.setAccountStatus(destination, StatusWaitingForSigner)
 
-	// Wait for signer changes...
+	// Wait for asset trust
+	account, err := ac.Horizon.LoadAccount(destination)
 	for {
-		account, err := ac.Horizon.LoadAccount(destination)
 		if err != nil {
 			localLog.WithField("err", err).Error("Error loading account to check trustline")
 			time.Sleep(2 * time.Second)
 			continue
+		}
+
+		if ac.alreadyTrustAssets(account) {
+			break
 		}
 
 		if ac.signerExistsOnly(account) {
@@ -129,6 +133,8 @@ func (ac *AccountConfigurator) ConfigureAccount(destination, assetCode, amount s
 		}
 
 		time.Sleep(2 * time.Second)
+
+		account, err = ac.Horizon.LoadAccount(destination)
 	}
 
 	localLog.Info("Signer found")
@@ -138,7 +144,7 @@ func (ac *AccountConfigurator) ConfigureAccount(destination, assetCode, amount s
 	// When signer was created we can configure account in Bifrost without requiring
 	// the user to share the account's secret key.
 	localLog.Info("Sending token")
-	err := ac.configureAccountTransaction(destination, assetCode, amount, ac.NeedsAuthorize)
+	err = ac.configureAccountTransaction(account, destination, assetCode, amount, ac.NeedsAuthorize)
 	if err != nil {
 		localLog.WithField("err", err).Error("Error configuring an account")
 		return
@@ -147,11 +153,13 @@ func (ac *AccountConfigurator) ConfigureAccount(destination, assetCode, amount s
 	ac.setAccountStatus(destination, StatusRemovingSigner)
 
 	if ac.LockUnixTimestamp == 0 {
-		localLog.Info("Removing temporary signer")
-		err = ac.removeTemporarySigner(destination)
-		if err != nil {
-			localLog.WithField("err", err).Error("Error removing temporary signer")
-			return
+		if ac.signerExistsOnly(account) {
+			localLog.Info("Removing temporary signer")
+			err = ac.removeTemporarySigner(destination)
+			if err != nil {
+				localLog.WithField("err", err).Error("Error removing temporary signer")
+				return
+			}
 		}
 
 		if ac.OnExchanged != nil {
@@ -217,4 +225,15 @@ func (ac *AccountConfigurator) signerExistsOnly(account horizon.Account) bool {
 	}
 
 	return tempSignerFound
+}
+
+// alreadyTrustAssets returns true if account already trusts certain assets
+func (ac *AccountConfigurator) alreadyTrustAssets(account horizon.Account) bool {
+	for _, balance := range account.Balances {
+		if balance.Asset.Code == ac.TokenAssetCode && balance.Asset.Issuer == ac.IssuerPublicKey {
+			return true
+		}
+	}
+
+	return false
 }

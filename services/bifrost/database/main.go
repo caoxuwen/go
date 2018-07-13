@@ -29,7 +29,7 @@ const (
 type Database interface {
 	// CreateAddressAssociation creates Bitcoin/Ethereum-Stellar association. `addressIndex`
 	// is the chain (Bitcoin/Ethereum) address derivation index (BIP-32).
-	CreateAddressAssociation(chain Chain, stellarAddress, address string, addressIndex uint32) error
+	CreateAddressAssociation(chain Chain, stellarAddress, address string, addressIndex uint32) (*AddressAssociation, error)
 	// GetAssociationByChainAddress searches for previously saved Bitcoin/Ethereum-Stellar association.
 	// Should return nil if not found.
 	GetAssociationByChainAddress(chain Chain, address string) (*AddressAssociation, error)

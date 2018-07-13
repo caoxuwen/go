@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lib/pq"
 	"github.com/caoxuwen/go/services/bifrost/queue"
 	"github.com/caoxuwen/go/services/bifrost/sse"
 	"github.com/caoxuwen/go/support/db"
 	"github.com/caoxuwen/go/support/errors"
+	"github.com/lib/pq"
 )
 
 const (
@@ -145,7 +145,7 @@ func (d *PostgresDatabase) getTable(name string, session *db.Session) *db.Table 
 	}
 }
 
-func (d *PostgresDatabase) CreateAddressAssociation(chain Chain, stellarAddress, address string, addressIndex uint32) error {
+func (d *PostgresDatabase) CreateAddressAssociation(chain Chain, stellarAddress, address string, addressIndex uint32) (*AddressAssociation, error) {
 	addressAssociationTable := d.getTable(addressAssociationTableName, nil)
 
 	association := &AddressAssociation{
@@ -156,8 +156,13 @@ func (d *PostgresDatabase) CreateAddressAssociation(chain Chain, stellarAddress,
 		CreatedAt:        time.Now(),
 	}
 
+	row, _ := d.GetAssociationByStellarPublicKey(stellarAddress)
+	if row != nil {
+		return row, nil
+	}
+
 	_, err := addressAssociationTable.Insert(association).Exec()
-	return err
+	return association, err
 }
 
 func (d *PostgresDatabase) GetAssociationByChainAddress(chain Chain, address string) (*AddressAssociation, error) {

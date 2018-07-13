@@ -63,6 +63,7 @@ CREATE TABLE transactions_queue (
 
 CREATE TYPE event AS ENUM ('transaction_received', 'account_created', 'exchanged', 'exchanged_timelocked');
 
+/* originally had UNIQUE (address, event) */
 CREATE TABLE broadcasted_event (
   id bigserial,
   /* bitcoin 34 characters */
@@ -70,8 +71,7 @@ CREATE TABLE broadcasted_event (
   address varchar(42) NOT NULL,
   event event NOT NULL,
   data text NOT NULL,
-  PRIMARY KEY (id),
-  UNIQUE (address, event)
+  PRIMARY KEY (id)
 );
 
 CREATE TABLE recovery_transaction (

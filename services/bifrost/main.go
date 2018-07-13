@@ -366,7 +366,7 @@ func createServer(cfg config.Config, stressTest bool) *server.Server {
 		}
 
 		ethereumListener.Enabled = true
-		ethereumListener.NetworkID = "3"
+		ethereumListener.NetworkID = cfg.Ethereum.NetworkID
 		ethereumAddressGenerator, err = ethereum.NewAddressGenerator(cfg.Ethereum.MasterPublicKey)
 		if err != nil {
 			log.Error(err)
