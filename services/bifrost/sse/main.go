@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/r3labs/sse"
 	"github.com/caoxuwen/go/support/log"
+	"github.com/caoxuwen/sse"
 )
 
 // AddressEvent is an event sent to address SSE stream.

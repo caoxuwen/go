@@ -6,7 +6,7 @@ import (
 
 	"github.com/caoxuwen/go/services/bifrost/common"
 	"github.com/caoxuwen/go/support/log"
-	"github.com/r3labs/sse"
+	"github.com/caoxuwen/sse"
 )
 
 func (s *Server) init() {
