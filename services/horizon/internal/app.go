@@ -12,7 +12,7 @@ import (
 	"github.com/caoxuwen/go/build"
 	"github.com/caoxuwen/go/clients/stellarcore"
 	horizonContext "github.com/caoxuwen/go/services/horizon/internal/context"
-	"github.com/garyburd/redigo/redis"
+	"github.com/gomodule/redigo/redis"
 	"github.com/rcrowley/go-metrics"
 
 	"github.com/caoxuwen/go/services/horizon/internal/db2/core"

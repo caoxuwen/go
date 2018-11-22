@@ -10,8 +10,8 @@ import (
 
 	"github.com/caoxuwen/go/services/horizon/internal/db2/schema"
 	"github.com/caoxuwen/go/services/horizon/internal/ingest"
-	hlog "github.com/caoxuwen/go/services/horizon/internal/log"
 	"github.com/caoxuwen/go/support/db"
+	hlog "github.com/caoxuwen/go/support/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
