@@ -8,8 +8,6 @@ import (
 	"github.com/caoxuwen/go/services/horizon/internal/render/sse"
 	"github.com/caoxuwen/go/services/horizon/internal/resourceadapter"
 	"github.com/caoxuwen/go/support/render/hal"
-	"fmt"
-	"errors"
 )
 
 // This file contains the actions:
@@ -44,17 +42,17 @@ func (action *OffersByAccountAction) SSE(stream sse.Stream) {
 	action.Do(
 		action.loadParams,
 		action.loadRecords,
+		action.loadLedgers,
 		func() {
 			stream.SetLimit(int(action.PageQuery.Limit))
 			for _, record := range action.Records[stream.SentCount():] {
 				ledger, found := action.Ledgers.Records[record.Lastmodified]
+				ledgerPtr := &ledger
 				if !found {
-					msg := fmt.Sprintf("could not find ledger data for sequence %d", record.Lastmodified)
-					stream.Err(errors.New(msg))
-					return
+					ledgerPtr = nil
 				}
 				var res horizon.Offer
-				resourceadapter.PopulateOffer(action.R.Context(), &res, record, ledger)
+				resourceadapter.PopulateOffer(action.R.Context(), &res, record, ledgerPtr)
 				stream.Send(sse.Event{ID: res.PagingToken(), Data: res})
 			}
 		},
@@ -85,14 +83,13 @@ func (action *OffersByAccountAction) loadRecords() {
 func (action *OffersByAccountAction) loadPage() {
 	for _, record := range action.Records {
 		ledger, found := action.Ledgers.Records[record.Lastmodified]
+		ledgerPtr := &ledger
 		if !found {
-			msg := fmt.Sprintf("could not find ledger data for sequence %d", record.Lastmodified)
-			action.Err = errors.New(msg)
-			return
+			ledgerPtr = nil
 		}
 
 		var res horizon.Offer
-		resourceadapter.PopulateOffer(action.R.Context(), &res, record, ledger)
+		resourceadapter.PopulateOffer(action.R.Context(), &res, record, ledgerPtr)
 		action.Page.Add(res)
 	}
 

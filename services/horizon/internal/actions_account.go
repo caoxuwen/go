@@ -1,11 +1,11 @@
 package horizon
 
 import (
+	"github.com/caoxuwen/go/protocols/horizon"
 	"github.com/caoxuwen/go/services/horizon/internal/db2/core"
 	"github.com/caoxuwen/go/services/horizon/internal/db2/history"
 	"github.com/caoxuwen/go/services/horizon/internal/render/sse"
 	"github.com/caoxuwen/go/services/horizon/internal/resourceadapter"
-	"github.com/caoxuwen/go/protocols/horizon"
 	"github.com/caoxuwen/go/support/render/hal"
 )
 
@@ -39,6 +39,7 @@ func (action *AccountShowAction) JSON() {
 
 // SSE is a method for actions.SSE
 func (action *AccountShowAction) SSE(stream sse.Stream) {
+
 	action.Do(
 		action.loadParams,
 		action.loadRecord,
@@ -51,12 +52,15 @@ func (action *AccountShowAction) SSE(stream sse.Stream) {
 }
 
 func (action *AccountShowAction) loadParams() {
-	action.Address = action.GetString("account_id")
+	action.Address = action.GetAddress("account_id")
 }
 
 func (action *AccountShowAction) loadRecord() {
+	app := AppFromContext(action.R.Context())
+	protocolVersion := app.protocolVersion
+
 	action.Err = action.CoreQ().
-		AccountByAddress(&action.CoreRecord, action.Address)
+		AccountByAddress(&action.CoreRecord, action.Address, protocolVersion)
 	if action.Err != nil {
 		return
 	}
@@ -74,7 +78,7 @@ func (action *AccountShowAction) loadRecord() {
 	}
 
 	action.Err = action.CoreQ().
-		TrustlinesByAddress(&action.CoreTrustlines, action.Address)
+		TrustlinesByAddress(&action.CoreTrustlines, action.Address, protocolVersion)
 	if action.Err != nil {
 		return
 	}

@@ -7,11 +7,14 @@ import (
 	"sync"
 
 	sq "github.com/Masterminds/squirrel"
-	metrics "github.com/rcrowley/go-metrics"
 	"github.com/caoxuwen/go/services/horizon/internal/db2/core"
 	"github.com/caoxuwen/go/support/db"
+	ilog "github.com/caoxuwen/go/support/log"
 	"github.com/caoxuwen/go/xdr"
+	metrics "github.com/rcrowley/go-metrics"
 )
+
+var log = ilog.DefaultLogger.WithField("service", "ingest")
 
 const (
 	// CurrentVersion reflects the latest version of the ingestion
@@ -22,7 +25,7 @@ const (
 	// Scripts, that have yet to be ported to this codebase can then be leveraged
 	// to re-ingest old data with the new algorithm, providing a seamless
 	// transition when the ingested data's structure changes.
-	CurrentVersion = 13
+	CurrentVersion = 14
 )
 
 // Address is a type of a param provided to BatchInsertBuilder that gets exchanged
@@ -66,6 +69,13 @@ type Cursor struct {
 	data *LedgerBundle
 }
 
+// Config allows passing some configuration values to System and Session.
+type Config struct {
+	// EnableAssetStats is a feature flag that determines whether to calculate
+	// asset stats in this ingestion system.
+	EnableAssetStats bool
+}
+
 // EffectIngestion is a helper struct to smooth the ingestion of effects.  this
 // struct will track what the correct operation to use and order to use when
 // adding effects into an ingestion.
@@ -88,27 +98,23 @@ type LedgerBundle struct {
 
 // System represents the data ingestion subsystem of horizon.
 type System struct {
+	// Config allows passing some configuration values to System.
+	Config Config
 	// HorizonDB is the connection to the horizon database that ingested data will
 	// be written to.
 	HorizonDB *db.Session
-
 	// CoreDB is the stellar-core db that data is ingested from.
-	CoreDB *db.Session
-
+	CoreDB  *db.Session
 	Metrics IngesterMetrics
-
 	// Network is the passphrase for the network being imported
 	Network string
-
 	// StellarCoreURL is the http endpoint of the stellar-core that data is being
 	// ingested from.
 	StellarCoreURL string
-
 	// SkipCursorUpdate causes the ingestor to skip
 	// reporting the "last imported ledger" cursor to
 	// stellar-core
 	SkipCursorUpdate bool
-
 	// HistoryRetentionCount is the desired minimum number of ledgers to
 	// keep in the history database, working backwards from the latest core
 	// ledger.  0 represents "all ledgers".
@@ -150,24 +156,22 @@ type Ingestion struct {
 // Session represents a single attempt at ingesting data into the history
 // database.
 type Session struct {
+	// Config allows passing some configuration values to System.
+	Config    Config
 	Cursor    *Cursor
 	Ingestion *Ingestion
 	// Network is the passphrase for the network being imported
 	Network string
-
 	// StellarCoreURL is the http endpoint of the stellar-core that data is being
 	// ingested from.
 	StellarCoreURL string
-
 	// ClearExisting causes the session to clear existing data from the horizon db
 	// when the session is run.
 	ClearExisting bool
-
 	// SkipCursorUpdate causes the session to skip
 	// reporting the "last imported ledger" cursor to
 	// stellar-core
 	SkipCursorUpdate bool
-
 	// Metrics is a reference to where the session should record its metric information
 	Metrics *IngesterMetrics
 
@@ -177,7 +181,6 @@ type Session struct {
 
 	// Err is the error that caused this session to fail, if any.
 	Err error
-
 	// Ingested is the number of ledgers that were successfully ingested during
 	// this session.
 	Ingested int
@@ -185,8 +188,9 @@ type Session struct {
 
 // New initializes the ingester, causing it to begin polling the stellar-core
 // database for now ledgers and ingesting data into the horizon database.
-func New(network string, coreURL string, core, horizon *db.Session) *System {
+func New(network string, coreURL string, core, horizon *db.Session, config Config) *System {
 	i := &System{
+		Config:         config,
 		Network:        network,
 		StellarCoreURL: coreURL,
 		HorizonDB:      horizon,
@@ -215,6 +219,7 @@ func NewSession(i *System) *Session {
 	hdb := i.HorizonDB.Clone()
 
 	return &Session{
+		Config: i.Config,
 		Ingestion: &Ingestion{
 			DB: hdb,
 		},

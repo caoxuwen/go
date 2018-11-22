@@ -6,24 +6,16 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"time"
-
-	"github.com/caoxuwen/go/support/log"
 )
-
-// HeartbeatDelay represents the amount of time a stream will wait before sending a new heartbeat
-// down an idle stream.
-const HeartbeatDelay = 5 * time.Second
 
 // Event is the packet of data that gets sent over the wire to a connected
 // client.
 type Event struct {
-	Data    interface{}
-	Error   error
-	ID      string
-	Event   string
-	Comment string
-	Retry   int
+	Data  interface{}
+	Error error
+	ID    string
+	Event string
+	Retry int
 }
 
 // SseEvent returns the SSE compatible form of the Event... itself.
@@ -36,22 +28,6 @@ func (e Event) SseEvent() Event {
 type Eventable interface {
 	// SseEvent returns the SSE compatible form of the implementer
 	SseEvent() Event
-}
-
-// Pumped returns a channel that will be closed the next time the input pump
-// sends.  It can be used similar to `ctx.Done()`, like so:  `<-sse.Pumped()`
-func Pumped() <-chan struct{} {
-	return nextTick
-}
-
-// Tick triggers any open SSE streams to tick by replacing and closing the
-// `nextTick` trigger channel.
-func Tick() {
-	lock.Lock()
-	prev := nextTick
-	nextTick = make(chan struct{})
-	lock.Unlock()
-	close(prev)
 }
 
 // WritePreamble prepares this http connection for streaming using Server Sent
@@ -81,23 +57,14 @@ func WritePreamble(ctx context.Context, w http.ResponseWriter) bool {
 // WriteEvent does the actual work of formatting an SSE compliant message
 // sending it over the provided ResponseWriter and flushing.
 func WriteEvent(ctx context.Context, w http.ResponseWriter, e Event) {
-
-	// If the event has the error field set, emit the error and exit early
 	if e.Error != nil {
 		fmt.Fprint(w, "event: err\n")
 		fmt.Fprintf(w, "data: %s\n\n", e.Error.Error())
 		w.(http.Flusher).Flush()
-		log.Ctx(ctx).Error(e.Error)
 		return
 	}
 
-	// If the event has the comment field set, emit the comment and exit early
-	if e.Comment != "" {
-		fmt.Fprintf(w, ": %s\n\n", e.Comment)
-		w.(http.Flusher).Flush()
-		return
-	}
-
+	// TODO: add tests to ensure retry get's properly rendered
 	if e.Retry != 0 {
 		fmt.Fprintf(w, "retry: %d\n", e.Retry)
 	}
@@ -112,12 +79,6 @@ func WriteEvent(ctx context.Context, w http.ResponseWriter, e Event) {
 
 	fmt.Fprintf(w, "data: %s\n\n", getJSON(e.Data))
 	w.(http.Flusher).Flush()
-}
-
-// WriteHeartbeat emits a "heartbeat" comment into the sse stream.  Low traffic connections will be
-// kept alive longer if a regular heartbeat is sent regularly.
-func WriteHeartbeat(ctx context.Context, w http.ResponseWriter) {
-	WriteEvent(ctx, w, heartbeatEvent)
 }
 
 // Upon successful completion of a query (i.e. the client didn't disconnect
@@ -139,14 +100,10 @@ var helloEvent = Event{
 	Retry: 1000,
 }
 
-// heartbeatEvent represents a comment line that can be sent to the client to keep a long lived
-// connection alive.
-var heartbeatEvent = Event{
-	Comment: "bu-bump",
-}
-
-var lock sync.Mutex
-var nextTick chan struct{}
+var (
+	lock     sync.Mutex
+	nextTick = make(chan struct{})
+)
 
 func getJSON(val interface{}) string {
 	js, err := json.Marshal(val)
@@ -156,10 +113,4 @@ func getJSON(val interface{}) string {
 	}
 
 	return string(js)
-}
-
-func init() {
-	lock.Lock()
-	nextTick = make(chan struct{})
-	lock.Unlock()
 }

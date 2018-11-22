@@ -279,7 +279,7 @@ Every request must contain required parameters from the following list. Addition
 
 name |  | description
 --- | --- | ---
-`id` | optional | Unique ID of the payment. If you send another request with the same `id` previously sent transaction will be resubmitted to the network.
+`id` | optional | Unique ID of the payment. If you send another request with the same `id` previously sent transaction will be resubmitted to the network. This parameter is required when sending a payment using Compliance protocol.
 `source` | optional | Secret seed of transaction source account. If ommitted it will use the `base_seed` specified in the config file.
 `sender` | optional | Payment address (ex. `bob*stellar.org`) of payment sender account. Required for when sending using Compliance protocol.
 `destination` | required | Account ID or payment address (ex. `bob*stellar.org`) of payment destination account
@@ -436,7 +436,7 @@ Respond with `200 OK` when processing succeeded. Any other status code will be c
 
 #### Payload Authentication
 
-When the `mac_key` configuration value is set, the bridge server will attach HTTP headers to each payment notification that allow the receiver to verify that the notification is not forged.  A header named `X_PAYLOAD_MAC` that contains a base64-encoded MAC value will be included. This MAC is derived by calculating the HMAC-SHA256 of the raw request body using the decoded value of the `mac_key` configuration option as the key.
+When the `mac_key` configuration value is set, the bridge server will attach HTTP headers to each payment notification that allow the receiver to verify that the notification is not forged.  A header named `X-Payload-Mac` that contains a base64-encoded MAC value will be included. This MAC is derived by calculating the HMAC-SHA256 of the raw request body using the decoded value of the `mac_key` configuration option as the key.
 
 This MAC can be used on the receiving side of the notification to verify that the payment notifications was generated from the bridge server, rather than from some other actor, to increase security.
 

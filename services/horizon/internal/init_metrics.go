@@ -3,8 +3,8 @@ package horizon
 import (
 	"fmt"
 
+	"github.com/caoxuwen/go/services/horizon/internal/logmetrics"
 	"github.com/rcrowley/go-metrics"
-	"github.com/caoxuwen/go/services/horizon/internal/log"
 )
 
 func initMetrics(app *App) {
@@ -38,7 +38,7 @@ func initIngesterMetrics(app *App) {
 }
 
 func initLogMetrics(app *App) {
-	for level, meter := range *log.DefaultMetrics {
+	for level, meter := range *logmetrics.DefaultMetrics {
 		key := fmt.Sprintf("logging.%s", level)
 		app.metrics.Register(key, meter)
 	}

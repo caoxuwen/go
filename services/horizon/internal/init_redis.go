@@ -4,8 +4,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/garyburd/redigo/redis"
-	"github.com/caoxuwen/go/services/horizon/internal/log"
+	"github.com/caoxuwen/go/support/log"
+	"github.com/gomodule/redigo/redis"
 )
 
 func initRedis(app *App) {

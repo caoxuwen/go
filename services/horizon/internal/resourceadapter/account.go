@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	. "github.com/caoxuwen/go/protocols/horizon"
 	"github.com/caoxuwen/go/services/horizon/internal/db2/core"
 	"github.com/caoxuwen/go/services/horizon/internal/db2/history"
 	"github.com/caoxuwen/go/services/horizon/internal/httpx"
-	. "github.com/caoxuwen/go/protocols/horizon"
 	"github.com/caoxuwen/go/support/render/hal"
 )
 
@@ -41,7 +41,7 @@ func PopulateAccount(
 	}
 
 	// add native balance
-	err = PopulateNativeBalance(&dest.Balances[len(dest.Balances)-1], ca.Balance)
+	err = PopulateNativeBalance(&dest.Balances[len(dest.Balances)-1], ca.Balance, ca.BuyingLiabilities, ca.SellingLiabilities)
 	if err != nil {
 		return
 	}
@@ -73,4 +73,3 @@ func PopulateAccount(
 	dest.Links.Data.PopulateTemplated()
 	return
 }
-

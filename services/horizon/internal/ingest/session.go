@@ -16,6 +16,7 @@ import (
 	"github.com/caoxuwen/go/services/horizon/internal/db2/history"
 	"github.com/caoxuwen/go/services/horizon/internal/ingest/participants"
 	"github.com/caoxuwen/go/support/errors"
+	ilog "github.com/caoxuwen/go/support/log"
 	sTime "github.com/caoxuwen/go/support/time"
 	"github.com/caoxuwen/go/xdr"
 )
@@ -36,17 +37,39 @@ func (is *Session) Run() {
 
 	defer is.Ingestion.Rollback()
 
+	var sectionStart, i int32
+
 	for is.Cursor.NextLedger() {
+		if sectionStart == 0 {
+			sectionStart = is.Cursor.LedgerSequence()
+		}
+		// Ensure no errors in Cursor
+		is.Err = errors.Wrap(is.Cursor.Err, "Cursor.NextLedger error")
+
 		is.validateLedger()
 		is.clearLedger()
 		is.ingestLedger()
 		is.flush()
 
+		i++
+		if i%100 == 0 {
+			// Print status update every 100 ledgers. Can be helpful when reingesting or
+			// backfilling large number of ledgers.
+			log.WithFields(ilog.F{
+				"start": sectionStart,
+				"end":   is.Cursor.LedgerSequence(),
+			}).Info("Status: ingested ledgers")
+			sectionStart = 0
+		}
+
 		if is.Err != nil {
 			break
 		}
 	}
-	is.Cursor.AssetsModified.UpdateAssetStats(is)
+
+	if is.Config.EnableAssetStats {
+		is.Cursor.AssetsModified.UpdateAssetStats(is)
+	}
 
 	if is.Err != nil {
 		is.Ingestion.Rollback()
@@ -75,6 +98,10 @@ func (is *Session) clearLedger() {
 	if !is.ClearExisting {
 		return
 	}
+
+	startLedger, endLedger := is.Cursor.LedgerRange()
+	log.WithFields(ilog.F{"start": startLedger, "end": endLedger}).Info("Clearing ledgers")
+
 	start := time.Now()
 	is.Err = is.Ingestion.Clear(is.Cursor.LedgerRange())
 	if is.Err != nil {
@@ -151,12 +178,24 @@ func (is *Session) ingestEffects() {
 
 	case xdr.OperationTypePayment:
 		op := opbody.MustPaymentOp()
+
 		dets := map[string]interface{}{"amount": amount.String(op.Amount)}
 		is.assetDetails(dets, op.Asset, "")
 		effects.Add(op.Destination, history.EffectAccountCredited, dets)
 		effects.Add(source, history.EffectAccountDebited, dets)
+
 	case xdr.OperationTypePathPayment:
+		op := opbody.MustPathPaymentOp()
 		result := is.Cursor.OperationResult().MustPathPaymentResult().MustSuccess()
+
+		dets := map[string]interface{}{"amount": amount.String(op.DestAmount)}
+		is.assetDetails(dets, op.DestAsset, "")
+		effects.Add(op.Destination, history.EffectAccountCredited, dets)
+
+		dets = map[string]interface{}{"amount": amount.String(result.Last.Amount)}
+		is.assetDetails(dets, op.SendAsset, "")
+		effects.Add(source, history.EffectAccountDebited, dets)
+
 		is.ingestTradeEffects(effects, source, result.Offers)
 	case xdr.OperationTypeManageOffer:
 		result := is.Cursor.OperationResult().MustManageOfferResult().MustSuccess()
@@ -323,6 +362,14 @@ func (is *Session) ingestEffects() {
 
 		effects.Add(source, effect, dets)
 
+	case xdr.OperationTypeBumpSequence:
+		opChanges := is.Cursor.OperationChanges()
+		if len(opChanges) > 0 {
+			op := opbody.MustBumpSequenceOp()
+			dets := map[string]interface{}{"new_seq": op.BumpTo}
+			effects.Add(source, history.EffectSequenceBumped, dets)
+		}
+
 	default:
 		is.Err = fmt.Errorf("Unknown operation type: %s", is.Cursor.OperationType())
 		return
@@ -474,30 +521,39 @@ func (is *Session) ingestTrades() {
 		return
 	}
 
-	buyer := is.Cursor.OperationSourceAccount()
-	trades := []xdr.ClaimOfferAtom{}
+	cursor := is.Cursor
+	buyer := cursor.OperationSourceAccount()
+	buyOfferExists := false
+	buyOffer := xdr.OfferEntry{}
+	var trades []xdr.ClaimOfferAtom
 
-	switch is.Cursor.OperationType() {
+	switch cursor.OperationType() {
 	case xdr.OperationTypePathPayment:
-		trades = is.Cursor.OperationResult().
+		trades = cursor.OperationResult().
 			MustPathPaymentResult().
 			MustSuccess().
 			Offers
 
 	case xdr.OperationTypeManageOffer:
-		trades = is.Cursor.OperationResult().MustManageOfferResult().MustSuccess().OffersClaimed
+		manageOfferResult := cursor.OperationResult().MustManageOfferResult().MustSuccess()
+		trades = manageOfferResult.OffersClaimed
+		buyOffer, buyOfferExists = manageOfferResult.Offer.GetOffer()
+
 	case xdr.OperationTypeCreatePassiveOffer:
-		result := is.Cursor.OperationResult()
+		result := cursor.OperationResult()
 
 		// KNOWN ISSUE:  stellar-core creates results for CreatePassiveOffer operations
 		// with the wrong result arm set.
 		if result.Type == xdr.OperationTypeManageOffer {
-			trades = result.MustManageOfferResult().MustSuccess().OffersClaimed
+			manageOfferResult := result.MustManageOfferResult().MustSuccess()
+			trades = manageOfferResult.OffersClaimed
+			buyOffer, buyOfferExists = manageOfferResult.Offer.GetOffer()
 		} else {
-			trades = result.MustCreatePassiveOfferResult().MustSuccess().OffersClaimed
+			passiveOfferResult := result.MustCreatePassiveOfferResult().MustSuccess()
+			trades = passiveOfferResult.OffersClaimed
+			buyOffer, buyOfferExists = passiveOfferResult.Offer.GetOffer()
 		}
 	}
-
 	q := history.Q{Session: is.Ingestion.DB}
 	for i, trade := range trades {
 		// stellar-core will opportunisticly garbage collect invalid offers (in the
@@ -518,14 +574,16 @@ func (is *Session) ingestTrades() {
 			is.Err = errors.Wrap(err, "Cursor.BeforeAndAfter error")
 			return
 		}
-		offerPrice := before.Data.Offer.Price
+		sellOfferPrice := before.Data.Offer.Price
 
 		is.Err = q.InsertTrade(
 			is.Cursor.OperationID(),
 			int32(i),
 			buyer,
+			buyOfferExists,
+			buyOffer,
 			trade,
-			offerPrice,
+			sellOfferPrice,
 			sTime.MillisFromSeconds(is.Cursor.Ledger().CloseTime),
 		)
 		if is.Err != nil {
@@ -760,6 +818,9 @@ func (is *Session) operationDetails() map[string]interface{} {
 		} else {
 			details["value"] = nil
 		}
+	case xdr.OperationTypeBumpSequence:
+		op := c.Operation().Body.MustBumpSequenceOp()
+		details["bump_to"] = fmt.Sprintf("%d", op.BumpTo)
 	default:
 		panic(fmt.Errorf("Unknown operation type: %s", c.OperationType()))
 	}

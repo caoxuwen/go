@@ -1,9 +1,10 @@
 package operations
 
 import (
+	"time"
+
 	"github.com/caoxuwen/go/protocols/horizon/base"
 	"github.com/caoxuwen/go/support/render/hal"
-	"time"
 	"github.com/caoxuwen/go/xdr"
 )
 
@@ -21,6 +22,7 @@ var TypeNames = map[xdr.OperationType]string{
 	xdr.OperationTypeAccountMerge:       "account_merge",
 	xdr.OperationTypeInflation:          "inflation",
 	xdr.OperationTypeManageData:         "manage_data",
+	xdr.OperationTypeBumpSequence:       "bump_sequence",
 }
 
 // Base represents the common attributes of an operation resource
@@ -47,6 +49,12 @@ func (this Base) PagingToken() string {
 	return this.PT
 }
 
+// BumpSequence is the json resource representing a single operation whose type is
+// BumpSequence.
+type BumpSequence struct {
+	Base
+	BumpTo string `json:"bump_to"`
+}
 
 // CreateAccount is the json resource representing a single operation whose type
 // is CreateAccount.

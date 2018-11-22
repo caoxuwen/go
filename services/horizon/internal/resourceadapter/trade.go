@@ -5,11 +5,10 @@ import (
 	"fmt"
 
 	"github.com/caoxuwen/go/amount"
+	. "github.com/caoxuwen/go/protocols/horizon"
 	"github.com/caoxuwen/go/services/horizon/internal/db2/history"
 	"github.com/caoxuwen/go/services/horizon/internal/httpx"
 	"github.com/caoxuwen/go/support/render/hal"
-	. "github.com/caoxuwen/go/protocols/horizon"
-
 )
 
 // Populate fills out the details of a trade using a row from the history_trades
@@ -22,11 +21,19 @@ func PopulateTrade(
 	dest.ID = row.PagingToken()
 	dest.PT = row.PagingToken()
 	dest.OfferID = fmt.Sprintf("%d", row.OfferID)
+	dest.BaseOfferID = ""
+	if row.BaseOfferID != nil {
+		dest.BaseOfferID = fmt.Sprintf("%d", *row.BaseOfferID)
+	}
 	dest.BaseAccount = row.BaseAccount
 	dest.BaseAssetType = row.BaseAssetType
 	dest.BaseAssetCode = row.BaseAssetCode
 	dest.BaseAssetIssuer = row.BaseAssetIssuer
 	dest.BaseAmount = amount.String(row.BaseAmount)
+	dest.CounterOfferID = ""
+	if row.CounterOfferID != nil {
+		dest.CounterOfferID = fmt.Sprintf("%d", *row.CounterOfferID)
+	}
 	dest.CounterAccount = row.CounterAccount
 	dest.CounterAssetType = row.CounterAssetType
 	dest.CounterAssetCode = row.CounterAssetCode
@@ -45,7 +52,6 @@ func PopulateTrade(
 	populateTradeLinks(ctx, dest, row.HistoryOperationID)
 	return
 }
-
 
 func populateTradeLinks(
 	ctx context.Context,

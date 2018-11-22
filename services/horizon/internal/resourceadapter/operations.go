@@ -2,12 +2,13 @@ package resourceadapter
 
 import (
 	"context"
-	"github.com/caoxuwen/go/services/horizon/internal/db2/history"
-	"github.com/caoxuwen/go/protocols/horizon/operations"
-	"github.com/caoxuwen/go/xdr"
-	"github.com/caoxuwen/go/support/render/hal"
 	"fmt"
+
+	"github.com/caoxuwen/go/protocols/horizon/operations"
+	"github.com/caoxuwen/go/services/horizon/internal/db2/history"
 	"github.com/caoxuwen/go/services/horizon/internal/httpx"
+	"github.com/caoxuwen/go/support/render/hal"
+	"github.com/caoxuwen/go/xdr"
 )
 
 // NewOperation creates a new operation resource, finding the appropriate type to use
@@ -22,6 +23,10 @@ func NewOperation(
 	PopulateBaseOperation(ctx, &base, row, ledger)
 
 	switch row.Type {
+	case xdr.OperationTypeBumpSequence:
+		e := operations.BumpSequence{Base: base}
+		err = row.UnmarshalDetails(&e)
+		result = e
 	case xdr.OperationTypeCreateAccount:
 		e := operations.CreateAccount{Base: base}
 		err = row.UnmarshalDetails(&e)

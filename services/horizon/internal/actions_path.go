@@ -29,20 +29,24 @@ func (action *PathIndexAction) JSON() {
 }
 
 func (action *PathIndexAction) loadQuery() {
-	action.Query.DestinationAmount = action.GetAmount("destination_amount")
+	action.Query.DestinationAmount = action.GetPositiveAmount("destination_amount")
 	action.Query.DestinationAddress = action.GetAddress("destination_account")
 	action.Query.DestinationAsset = action.GetAsset("destination_")
 }
 
 func (action *PathIndexAction) loadSourceAssets() {
+	app := AppFromContext(action.R.Context())
+	protocolVersion := app.protocolVersion
+
 	action.Err = action.CoreQ().AssetsForAddress(
 		&action.Query.SourceAssets,
 		action.GetAddress("source_account"),
+		protocolVersion,
 	)
 }
 
 func (action *PathIndexAction) loadRecords() {
-	action.Records, action.Err = action.App.paths.Find(action.Query)
+	action.Records, action.Err = action.App.paths.Find(action.Query, action.App.config.MaxPathLength)
 }
 
 func (action *PathIndexAction) loadPage() {

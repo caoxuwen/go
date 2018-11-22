@@ -1,11 +1,17 @@
 package actions
 
 import (
+	"database/sql"
 	"net/http"
+	"time"
 
+	horizonContext "github.com/caoxuwen/go/services/horizon/internal/context"
+	"github.com/caoxuwen/go/services/horizon/internal/ledger"
 	"github.com/caoxuwen/go/services/horizon/internal/render"
 	hProblem "github.com/caoxuwen/go/services/horizon/internal/render/problem"
 	"github.com/caoxuwen/go/services/horizon/internal/render/sse"
+	"github.com/caoxuwen/go/support/errors"
+	"github.com/caoxuwen/go/support/log"
 	"github.com/caoxuwen/go/support/render/problem"
 )
 
@@ -18,15 +24,17 @@ type Base struct {
 	R   *http.Request
 	Err error
 
-	isSetup bool
+	sseUpdateFrequency time.Duration
+	isSetup            bool
 }
 
 // Prepare established the common attributes that get used in nearly every
 // action.  "Child" actions may override this method to extend action, but it
 // is advised you also call this implementation to maintain behavior.
-func (base *Base) Prepare(w http.ResponseWriter, r *http.Request) {
+func (base *Base) Prepare(w http.ResponseWriter, r *http.Request, sseUpdateFrequency time.Duration) {
 	base.W = w
 	base.R = r
+	base.sseUpdateFrequency = sseUpdateFrequency
 }
 
 // Execute trigger content negotiation and the actual execution of one of the
@@ -56,31 +64,80 @@ func (base *Base) Execute(action interface{}) {
 			goto NotAcceptable
 		}
 
-		stream := sse.NewStream(ctx, base.W, base.R)
+		stream := sse.NewStream(ctx, base.W)
 
 		for {
+			lastLedgerState := ledger.CurrentState()
+
+			// Rate limit the request if it's a call to stream since it queries the DB every second. See
+			// https://github.com/caoxuwen/go/issues/715 for more details.
+			app := base.R.Context().Value(&horizonContext.AppContextKey)
+			rateLimiter := app.(RateLimiterProvider).GetRateLimiter()
+			if rateLimiter != nil {
+				limited, _, err := rateLimiter.RateLimiter.RateLimit(rateLimiter.VaryBy.Key(base.R), 1)
+				if err != nil {
+					log.Ctx(ctx).Error(errors.Wrap(err, "RateLimiter error"))
+					stream.Err(errors.New("Unexpected stream error"))
+					return
+				}
+				if limited {
+					stream.Err(errors.New("rate limit exceeded"))
+					return
+				}
+			}
+
 			action.SSE(stream)
 
 			if base.Err != nil {
+				// In the case that we haven't yet sent an event, is also means we
+				// haven't sent the preamble, meaning we should simply return the normal HTTP
+				// error.
 				if stream.SentCount() == 0 {
 					problem.Render(ctx, base.W, base.Err)
 					return
-				} else {
-					stream.Err(base.Err)
 				}
+
+				if errors.Cause(base.Err) == sql.ErrNoRows {
+					base.Err = errors.New("Object not found")
+				} else {
+					log.Ctx(ctx).Error(base.Err)
+					base.Err = errors.New("Unexpected stream error")
+				}
+
+				// Send errors through the stream and then close the stream.
+				stream.Err(base.Err)
 			}
+
+			// Manually send the preamble in case there are no data events in SSE to trigger a stream.Send call.
+			// This method is called every iteration of the loop, but is protected by a sync.Once variable so it's
+			// only executed once.
+			stream.Init()
 
 			if stream.IsDone() {
 				return
 			}
 
-			stream.TrySendHeartbeat()
+			// Make sure this is buffered channel of size 1. Otherwise, the go routine below
+			// will never return if `newLedgers` channel is not read. From Effective Go:
+			// > If the channel is unbuffered, the sender blocks until the receiver has received the value.
+			newLedgers := make(chan bool, 1)
+			go func() {
+				for {
+					time.Sleep(base.sseUpdateFrequency)
+					currentLedgerState := ledger.CurrentState()
+					if currentLedgerState.HistoryLatest >= lastLedgerState.HistoryLatest+1 {
+						newLedgers <- true
+						return
+					}
+				}
+			}()
 
 			select {
 			case <-ctx.Done():
+				stream.Done()
 				return
-			case <-sse.Pumped():
-				//no-op, continue onto the next iteration
+			case <-newLedgers:
+				continue
 			}
 		}
 	case render.MimeRaw:

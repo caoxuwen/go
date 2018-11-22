@@ -1,25 +1,33 @@
 package ingest
 
 import (
+	"time"
+
 	"github.com/caoxuwen/go/services/horizon/internal/db2/core"
 	"github.com/caoxuwen/go/services/horizon/internal/db2/history"
 	herr "github.com/caoxuwen/go/services/horizon/internal/errors"
 	"github.com/caoxuwen/go/services/horizon/internal/ledger"
-	"github.com/caoxuwen/go/services/horizon/internal/log"
 	"github.com/caoxuwen/go/services/horizon/internal/toid"
 	"github.com/caoxuwen/go/support/errors"
+	ilog "github.com/caoxuwen/go/support/log"
 )
 
 // Backfill ingests history in reverse chronological order, from the current
 // horizon elder query for `n` ledgers
 func (i *System) Backfill(n uint) error {
-	start := ledger.CurrentState().HistoryElder
-	end := start - int32(n)
+	start := ledger.CurrentState().HistoryElder - 1
+	end := start - int32(n) + 1
 	is := NewSession(i)
 	is.Cursor = NewCursor(start, end, i)
-	is.ClearExisting = true
+
+	log.WithField("start", start).
+		WithField("end", end).
+		WithField("err", is.Err).
+		WithField("ingested", is.Ingested).
+		Info("ingest: backfill start")
 
 	is.Run()
+
 	log.WithField("start", start).
 		WithField("end", end).
 		WithField("err", is.Err).
@@ -226,8 +234,6 @@ func (i *System) runOnce() {
 		}
 	}()
 
-	ls := ledger.CurrentState()
-
 	// 1. stash a copy of the current ingestion session (assigned from the tick)
 	// 2. decide what to import
 	// 3. import until none available
@@ -243,38 +249,70 @@ func (i *System) runOnce() {
 		i.lock.Unlock()
 	}()
 
+	// Warning: do not check the current ledger state using ledger.CurrentState()! It is updated
+	// in another go routine and can return the same data for two different ingestion sessions.
+	var coreLatest, historyLatest int32
+
+	coreQ := core.Q{Session: i.CoreDB}
+	err := coreQ.LatestLedger(&coreLatest)
+	if err != nil {
+		log.WithFields(ilog.F{"err": err}).Error("Error getting core latest ledger")
+		return
+	}
+
+	historyQ := history.Q{Session: i.HorizonDB}
+	err = historyQ.LatestLedger(&historyLatest)
+	if err != nil {
+		log.WithFields(ilog.F{"err": err}).Error("Error getting history latest ledger")
+		return
+	}
+
 	if is == nil {
 		log.Warn("ingest: runOnce ran with a nil current session")
 		return
 	}
 
-	if ls.CoreLatest == 1 {
+	if coreLatest == 1 {
 		log.Warn("ingest: waiting for stellar-core sync")
 		return
 	}
 
-	if ls.HistoryLatest == ls.CoreLatest {
+	if historyLatest == coreLatest {
 		log.Debug("ingest: no new ledgers")
 		return
 	}
 
 	// 2.
-	if ls.HistoryLatest == 0 {
+	if historyLatest == 0 {
 		log.Infof(
 			"history db is empty, establishing base at ledger %d",
-			ls.CoreLatest,
+			coreLatest,
 		)
-		is.Cursor = NewCursor(ls.CoreLatest, ls.CoreLatest, i)
+		is.Cursor = NewCursor(coreLatest, coreLatest, i)
 	} else {
-		is.Cursor = NewCursor(ls.HistoryLatest+1, ls.CoreLatest, i)
+		is.Cursor = NewCursor(historyLatest+1, coreLatest, i)
 	}
 
 	// 3.
+	logFields := ilog.F{
+		"first_ledger": is.Cursor.FirstLedger,
+		"last_ledger":  is.Cursor.LastLedger,
+	}
+	log.WithFields(logFields).Info("Ingesting ledgers...")
+	ingestStart := time.Now()
+
 	is.Run()
 
 	if is.Err != nil {
-		log.Errorf("import session failed: %s", is.Err)
+		// We need to use `Error` method because `is.Err` is `withMessage` struct from
+		// `github.com/pkg/errors` and encodes to `{}` in the logs.
+		logFields["err"] = is.Err.Error()
+		log.WithFields(logFields).Error("Error ingesting ledgers")
+		return
 	}
+
+	logFields["duration"] = time.Since(ingestStart).Seconds()
+	log.WithFields(logFields).Info("Finished ingesting ledgers")
 
 	return
 }

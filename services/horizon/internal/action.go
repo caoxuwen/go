@@ -10,9 +10,10 @@ import (
 	"github.com/caoxuwen/go/services/horizon/internal/db2/history"
 	"github.com/caoxuwen/go/services/horizon/internal/httpx"
 	"github.com/caoxuwen/go/services/horizon/internal/ledger"
-	"github.com/caoxuwen/go/services/horizon/internal/log"
 	"github.com/caoxuwen/go/services/horizon/internal/render/problem"
 	"github.com/caoxuwen/go/services/horizon/internal/toid"
+	"github.com/caoxuwen/go/support/errors"
+	"github.com/caoxuwen/go/support/log"
 )
 
 // Action is the "base type" for all actions in horizon.  It provides
@@ -52,8 +53,8 @@ func (action *Action) HistoryQ() *history.Q {
 // Prepare sets the action's App field based upon the context
 func (action *Action) Prepare(w http.ResponseWriter, r *http.Request) {
 	base := &action.Base
-	base.Prepare(w, r)
 	action.App = AppFromContext(r.Context())
+	base.Prepare(w, r, action.App.config.SSEUpdateFrequency)
 	if action.R.Context() != nil {
 		action.Log = log.Ctx(action.R.Context())
 	} else {
@@ -110,7 +111,7 @@ func (action *Action) ValidateCursorWithinHistory() {
 	}
 
 	if err != nil {
-		action.Err = err
+		action.SetInvalidField("cursor", errors.New("invalid value"))
 		return
 	}
 

@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"encoding/base64"
+	"encoding/json"
+
 	"github.com/caoxuwen/go/protocols/horizon/base"
 	"github.com/caoxuwen/go/strkey"
 	"github.com/caoxuwen/go/support/errors"
@@ -48,7 +50,7 @@ type Account struct {
 }
 
 // GetNativeBalance returns the native balance of the account
-func (a Account) GetNativeBalance() (string, error){
+func (a Account) GetNativeBalance() (string, error) {
 	for _, balance := range a.Balances {
 		if balance.Asset.Type == "native" {
 			return balance.Balance, nil
@@ -90,6 +92,7 @@ func (this *Account) GetData(key string) ([]byte, error) {
 type AccountFlags struct {
 	AuthRequired  bool `json:"auth_required"`
 	AuthRevocable bool `json:"auth_revocable"`
+	AuthImmutable bool `json:"auth_immutable"`
 }
 
 // AccountThresholds represents an accounts "thresholds", the numerical values
@@ -123,8 +126,10 @@ func (res AssetStat) PagingToken() string {
 
 // Balance represents an account's holdings for a single currency type
 type Balance struct {
-	Balance string `json:"balance"`
-	Limit   string `json:"limit,omitempty"`
+	Balance            string `json:"balance"`
+	Limit              string `json:"limit,omitempty"`
+	BuyingLiabilities  string `json:"buying_liabilities"`
+	SellingLiabilities string `json:"selling_liabilities"`
 	base.Asset
 }
 
@@ -173,16 +178,16 @@ type Offer struct {
 		OfferMaker hal.Link `json:"offer_maker"`
 	} `json:"_links"`
 
-	ID                 int64     `json:"id"`
-	PT                 string    `json:"paging_token"`
-	Seller             string    `json:"seller"`
-	Selling            Asset     `json:"selling"`
-	Buying             Asset     `json:"buying"`
-	Amount             string    `json:"amount"`
-	PriceR             Price     `json:"price_r"`
-	Price              string    `json:"price"`
-	LastModifiedLedger int32     `json:"last_modified_ledger"`
-	LastModifiedTime   time.Time `json:"last_modified_time"`
+	ID                 int64      `json:"id"`
+	PT                 string     `json:"paging_token"`
+	Seller             string     `json:"seller"`
+	Selling            Asset      `json:"selling"`
+	Buying             Asset      `json:"buying"`
+	Amount             string     `json:"amount"`
+	PriceR             Price      `json:"price_r"`
+	Price              string     `json:"price"`
+	LastModifiedLedger int32      `json:"last_modified_ledger"`
+	LastModifiedTime   *time.Time `json:"last_modified_time"`
 }
 
 func (this Offer) PagingToken() string {
@@ -228,15 +233,15 @@ type PriceLevel struct {
 // Root is the initial map of links into the api.
 type Root struct {
 	Links struct {
-		Account             hal.Link `json:"account"`
-		AccountTransactions hal.Link `json:"account_transactions"`
-		Assets              hal.Link `json:"assets"`
-		Friendbot           hal.Link `json:"friendbot"`
-		Metrics             hal.Link `json:"metrics"`
-		OrderBook           hal.Link `json:"order_book"`
-		Self                hal.Link `json:"self"`
-		Transaction         hal.Link `json:"transaction"`
-		Transactions        hal.Link `json:"transactions"`
+		Account             hal.Link  `json:"account"`
+		AccountTransactions hal.Link  `json:"account_transactions"`
+		Assets              hal.Link  `json:"assets"`
+		Friendbot           *hal.Link `json:"friendbot,omitempty"`
+		Metrics             hal.Link  `json:"metrics"`
+		OrderBook           hal.Link  `json:"order_book"`
+		Self                hal.Link  `json:"self"`
+		Transaction         hal.Link  `json:"transaction"`
+		Transactions        hal.Link  `json:"transactions"`
 	} `json:"_links"`
 
 	HorizonVersion       string `json:"horizon_version"`
@@ -269,11 +274,13 @@ type Trade struct {
 	PT                 string    `json:"paging_token"`
 	LedgerCloseTime    time.Time `json:"ledger_close_time"`
 	OfferID            string    `json:"offer_id"`
+	BaseOfferID        string    `json:"base_offer_id"`
 	BaseAccount        string    `json:"base_account"`
 	BaseAmount         string    `json:"base_amount"`
 	BaseAssetType      string    `json:"base_asset_type"`
 	BaseAssetCode      string    `json:"base_asset_code,omitempty"`
 	BaseAssetIssuer    string    `json:"base_asset_issuer,omitempty"`
+	CounterOfferID     string    `json:"counter_offer_id"`
 	CounterAccount     string    `json:"counter_account"`
 	CounterAmount      string    `json:"counter_amount"`
 	CounterAssetType   string    `json:"counter_asset_type"`
@@ -367,6 +374,23 @@ type Transaction struct {
 	Signatures      []string  `json:"signatures"`
 	ValidAfter      string    `json:"valid_after,omitempty"`
 	ValidBefore     string    `json:"valid_before,omitempty"`
+}
+
+// MarshalJSON implements a custom marshaler for Transaction.
+// The memo field should be omitted if and only if the
+// memo_type is "none".
+func (t Transaction) MarshalJSON() ([]byte, error) {
+	type Alias Transaction
+	v := &struct {
+		Memo *string `json:"memo,omitempty"`
+		*Alias
+	}{
+		Alias: (*Alias)(&t),
+	}
+	if t.MemoType != "none" {
+		v.Memo = &t.Memo
+	}
+	return json.Marshal(v)
 }
 
 // PagingToken implementation for hal.Pageable
