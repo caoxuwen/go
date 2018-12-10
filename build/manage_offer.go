@@ -19,7 +19,7 @@ func CreatePassiveOffer(rate Rate, amount Amount) (result ManageOfferBuilder) {
 
 // CreateMarginOffer creates a new margin offer
 func CreateMarginOffer(rate Rate, amount Amount) (result ManageOfferBuilder) {
-	return ManageOffer(true, true, rate, amount)
+	return ManageOffer(false, true, rate, amount)
 }
 
 // UpdateOffer updates an existing offer
@@ -64,7 +64,9 @@ func (b *ManageOfferBuilder) Mutate(muts ...interface{}) {
 		var err error
 		switch mut := m.(type) {
 		case ManageOfferMutator:
-			if b.PassiveOffer {
+			if b.MarginOffer {
+				err = mut.MutateManageOffer(&b.MAO)
+			} else if b.PassiveOffer {
 				err = mut.MutateManageOffer(&b.PO)
 			} else {
 				err = mut.MutateManageOffer(&b.MO)

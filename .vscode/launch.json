@@ -24,6 +24,21 @@
           "program": "${workspaceRoot}",
           "env": {},
           "args": []
-        }
+        },
+        {
+            "name": "Run",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceRoot}/services/horizon/main.go",
+            "env": {},
+            "args": ["serve", "--ingest", 
+                "--db-url", "postgresql://horizonuser:password@localhost/horizondb?sslmode=disable",
+                "--stellar-core-url", "http://127.0.0.1:8080",
+                "--stellar-core-db-url", "postgresql://postgres:password@localhost/stellar?sslmode=disable"]
+        },
     ]
 }
