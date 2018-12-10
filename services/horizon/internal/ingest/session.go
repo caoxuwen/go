@@ -562,7 +562,7 @@ func (is *Session) ingestTrades() {
 			manageOfferResult := result.MustManageOfferResult().MustSuccess()
 			trades = manageOfferResult.OffersClaimed
 			buyOffer, buyOfferExists = manageOfferResult.Offer.GetOffer()
-		} else if result.Type == xdr.OperationTypeMarginOffer {
+		} else if result.Type == xdr.OperationTypeCreateMarginOffer {
 			passiveOfferResult := result.MustCreateMarginOfferResult().MustSuccess()
 			trades = passiveOfferResult.OffersClaimed
 			buyOffer, buyOfferExists = passiveOfferResult.Offer.GetOffer()
@@ -763,6 +763,16 @@ func (is *Session) operationDetails() map[string]interface{} {
 
 	case xdr.OperationTypeCreatePassiveOffer:
 		op := c.Operation().Body.MustCreatePassiveOfferOp()
+		details["amount"] = amount.String(op.Amount)
+		details["price"] = op.Price.String()
+		details["price_r"] = map[string]interface{}{
+			"n": op.Price.N,
+			"d": op.Price.D,
+		}
+		is.assetDetails(details, op.Buying, "buying_")
+		is.assetDetails(details, op.Selling, "selling_")
+	case xdr.OperationTypeCreateMarginOffer:
+		op := c.Operation().Body.MustCreateMarginOfferOp()
 		details["amount"] = amount.String(op.Amount)
 		details["price"] = op.Price.String()
 		details["price_r"] = map[string]interface{}{
