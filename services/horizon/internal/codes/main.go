@@ -3,8 +3,8 @@
 package codes
 
 import (
-	"github.com/go-errors/errors"
 	"github.com/caoxuwen/go/xdr"
+	"github.com/go-errors/errors"
 )
 
 // ErrUnknownCode is returned when an unexepcted value is provided to `String`
@@ -288,6 +288,8 @@ func ForOperationResult(opr xdr.OperationResult) (string, error) {
 		ic = ir.MustManageOfferResult().Code
 	case xdr.OperationTypeCreatePassiveOffer:
 		ic = ir.MustCreatePassiveOfferResult().Code
+	case xdr.OperationTypeCreateMarginOffer:
+		ic = ir.MustCreateMarginOfferResult().Code
 	case xdr.OperationTypeSetOptions:
 		ic = ir.MustSetOptionsResult().Code
 	case xdr.OperationTypeChangeTrust:

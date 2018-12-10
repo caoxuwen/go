@@ -9,27 +9,33 @@ import (
 
 // CreateOffer creates a new offer
 func CreateOffer(rate Rate, amount Amount) (result ManageOfferBuilder) {
-	return ManageOffer(false, rate, amount)
+	return ManageOffer(false, false, rate, amount)
 }
 
 // CreatePassiveOffer creates a new passive offer
 func CreatePassiveOffer(rate Rate, amount Amount) (result ManageOfferBuilder) {
-	return ManageOffer(true, rate, amount)
+	return ManageOffer(true, false, rate, amount)
+}
+
+// CreateMarginOffer creates a new margin offer
+func CreateMarginOffer(rate Rate, amount Amount) (result ManageOfferBuilder) {
+	return ManageOffer(true, true, rate, amount)
 }
 
 // UpdateOffer updates an existing offer
 func UpdateOffer(rate Rate, amount Amount, offerID OfferID) (result ManageOfferBuilder) {
-	return ManageOffer(false, rate, amount, offerID)
+	return ManageOffer(false, false, rate, amount, offerID)
 }
 
 // DeleteOffer deletes an existing offer
 func DeleteOffer(rate Rate, offerID OfferID) (result ManageOfferBuilder) {
-	return ManageOffer(false, rate, Amount("0"), offerID)
+	return ManageOffer(false, false, rate, Amount("0"), offerID)
 }
 
 // ManageOffer groups the creation of a new ManageOfferBuilder with a call to Mutate.
-func ManageOffer(passiveOffer bool, muts ...interface{}) (result ManageOfferBuilder) {
+func ManageOffer(passiveOffer bool, marginOffer bool, muts ...interface{}) (result ManageOfferBuilder) {
 	result.PassiveOffer = passiveOffer
+	result.MarginOffer = marginOffer
 	result.Mutate(muts...)
 	return
 }
@@ -44,9 +50,11 @@ type ManageOfferMutator interface {
 // ManageOfferBuilder represents a transaction that is being built.
 type ManageOfferBuilder struct {
 	PassiveOffer bool
+	MarginOffer  bool
 	O            xdr.Operation
 	MO           xdr.ManageOfferOp
 	PO           xdr.CreatePassiveOfferOp
+	MAO          xdr.CreateMarginOfferOp
 	Err          error
 }
 
@@ -83,6 +91,8 @@ func (m Amount) MutateManageOffer(o interface{}) (err error) {
 		o.Amount, err = amount.Parse(string(m))
 	case *xdr.CreatePassiveOfferOp:
 		o.Amount, err = amount.Parse(string(m))
+	case *xdr.CreateMarginOfferOp:
+		o.Amount, err = amount.Parse(string(m))
 	}
 	return
 }
@@ -116,6 +126,18 @@ func (m Rate) MutateManageOffer(o interface{}) (err error) {
 
 		o.Price, err = price.Parse(string(m.Price))
 	case *xdr.CreatePassiveOfferOp:
+		o.Selling, err = m.Selling.ToXDR()
+		if err != nil {
+			return
+		}
+
+		o.Buying, err = m.Buying.ToXDR()
+		if err != nil {
+			return
+		}
+
+		o.Price, err = price.Parse(string(m.Price))
+	case *xdr.CreateMarginOfferOp:
 		o.Selling, err = m.Selling.ToXDR()
 		if err != nil {
 			return

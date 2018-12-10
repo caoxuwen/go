@@ -26,7 +26,8 @@ enum OperationType
     ACCOUNT_MERGE = 8,
     INFLATION = 9,
     MANAGE_DATA = 10,
-    BUMP_SEQUENCE = 11
+    BUMP_SEQUENCE = 11,
+    CREATE_MARGIN_OFFER = 101
 };
 
 /* CreateAccount
@@ -110,6 +111,21 @@ Result: CreatePassiveOfferResult
 
 */
 struct CreatePassiveOfferOp
+{
+    Asset selling; // A
+    Asset buying;  // B
+    int64 amount;  // amount taker gets. if set to 0, delete the offer
+    Price price;   // cost of A in terms of B
+};
+
+/* Creates an margin trade offer
+
+Threshold: med
+
+Result: CreateMarginOfferResult
+
+*/
+struct CreateMarginOfferOp
 {
     Asset selling; // A
     Asset buying;  // B
@@ -226,6 +242,8 @@ struct ManageDataOp
 
     increases the sequence to a given level
 
+    Threshold: low
+
     Result: BumpSequenceResult
 */
 
@@ -254,6 +272,8 @@ struct Operation
         ManageOfferOp manageOfferOp;
     case CREATE_PASSIVE_OFFER:
         CreatePassiveOfferOp createPassiveOfferOp;
+    case CREATE_MARGIN_OFFER:
+        CreateMarginOfferOp createMarginOfferOp;
     case SET_OPTIONS:
         SetOptionsOp setOptionsOp;
     case CHANGE_TRUST:
@@ -490,7 +510,12 @@ enum ManageOfferResultCode
     // update errors
     MANAGE_OFFER_NOT_FOUND = -11, // offerID does not match an existing offer
 
-    MANAGE_OFFER_LOW_RESERVE = -12 // not enough funds to create a new Offer
+    MANAGE_OFFER_LOW_RESERVE = -12, // not enough funds to create a new Offer
+
+    // margin errors
+    MANAGE_OFFER_MARGIN_NOT_ASSET = -50, // margin cannot be native
+    MANAGE_OFFER_MARGIN_ASSET_INVALID = -51 // can only trade same debt
+
 };
 
 enum ManageOfferEffect
@@ -711,6 +736,8 @@ case opINNER:
         ManageOfferResult manageOfferResult;
     case CREATE_PASSIVE_OFFER:
         ManageOfferResult createPassiveOfferResult;
+    case CREATE_MARGIN_OFFER:
+        ManageOfferResult createMarginOfferResult;
     case SET_OPTIONS:
         SetOptionsResult setOptionsResult;
     case CHANGE_TRUST:

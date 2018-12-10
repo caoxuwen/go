@@ -23,6 +23,8 @@ const (
 	OperationTypeManageOffer OperationType = "manage_offer"
 	// OperationTypeCreatePassiveOffer represents create_passive_offer operation
 	OperationTypeCreatePassiveOffer OperationType = "create_passive_offer"
+	// OperationTypeCreateMarginOffer represents create_margin_offer operation
+	OperationTypeCreateMarginOffer OperationType = "create_margin_offer"
 	// OperationTypeSetOptions represents set_options operation
 	OperationTypeSetOptions OperationType = "set_options"
 	// OperationTypeChangeTrust represents change_trust operation
@@ -72,6 +74,11 @@ func (r BuilderRequest) Process() error {
 			var manageOffer ManageOfferOperationBody
 			err = json.Unmarshal(operation.RawBody, &manageOffer)
 			manageOffer.PassiveOffer = true
+			operationBody = manageOffer
+		case OperationTypeCreateMarginOffer:
+			var manageOffer ManageOfferOperationBody
+			err = json.Unmarshal(operation.RawBody, &manageOffer)
+			manageOffer.MarginOffer = true
 			operationBody = manageOffer
 		case OperationTypeSetOptions:
 			var setOptions SetOptionsOperationBody

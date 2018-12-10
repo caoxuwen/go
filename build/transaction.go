@@ -229,7 +229,10 @@ func (m ManageOfferBuilder) MutateTransaction(o *TransactionBuilder) error {
 		return m.Err
 	}
 
-	if m.PassiveOffer {
+	if m.MarginOffer {
+		m.O.Body, m.Err = xdr.NewOperationBody(xdr.OperationTypeCreateMarginOffer, m.MAO)
+		o.TX.Operations = append(o.TX.Operations, m.O)
+	} else if m.PassiveOffer {
 		m.O.Body, m.Err = xdr.NewOperationBody(xdr.OperationTypeCreatePassiveOffer, m.PO)
 		o.TX.Operations = append(o.TX.Operations, m.O)
 	} else {

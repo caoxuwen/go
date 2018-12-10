@@ -32,6 +32,8 @@ func ForOperation(
 		// the only direct participant is the source_account
 	case xdr.OperationTypeCreatePassiveOffer:
 		// the only direct participant is the source_account
+	case xdr.OperationTypeCreateMarginOffer:
+		// the only direct participant is the source_account
 	case xdr.OperationTypeSetOptions:
 		// the only direct participant is the source_account
 	case xdr.OperationTypeChangeTrust:

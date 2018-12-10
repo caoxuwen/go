@@ -213,6 +213,19 @@ func (is *Session) ingestEffects() {
 		}
 
 		is.ingestTradeEffects(effects, source, claims)
+	case xdr.OperationTypeCreateMarginOffer:
+		claims := []xdr.ClaimOfferAtom{}
+		result := is.Cursor.OperationResult()
+
+		// KNOWN ISSUE:  stellar-core creates results for CreateMarginOffer operations
+		// with the wrong result arm set.
+		if result.Type == xdr.OperationTypeManageOffer {
+			claims = result.MustManageOfferResult().MustSuccess().OffersClaimed
+		} else {
+			claims = result.MustCreateMarginOfferResult().MustSuccess().OffersClaimed
+		}
+
+		is.ingestTradeEffects(effects, source, claims)
 	case xdr.OperationTypeSetOptions:
 		op := opbody.MustSetOptionsOp()
 
@@ -540,6 +553,7 @@ func (is *Session) ingestTrades() {
 		buyOffer, buyOfferExists = manageOfferResult.Offer.GetOffer()
 
 	case xdr.OperationTypeCreatePassiveOffer:
+	case xdr.OperationTypeCreateMarginOffer:
 		result := cursor.OperationResult()
 
 		// KNOWN ISSUE:  stellar-core creates results for CreatePassiveOffer operations
@@ -548,6 +562,10 @@ func (is *Session) ingestTrades() {
 			manageOfferResult := result.MustManageOfferResult().MustSuccess()
 			trades = manageOfferResult.OffersClaimed
 			buyOffer, buyOfferExists = manageOfferResult.Offer.GetOffer()
+		} else if result.Type == xdr.OperationTypeMarginOffer {
+			passiveOfferResult := result.MustCreateMarginOfferResult().MustSuccess()
+			trades = passiveOfferResult.OffersClaimed
+			buyOffer, buyOfferExists = passiveOfferResult.Offer.GetOffer()
 		} else {
 			passiveOfferResult := result.MustCreatePassiveOfferResult().MustSuccess()
 			trades = passiveOfferResult.OffersClaimed

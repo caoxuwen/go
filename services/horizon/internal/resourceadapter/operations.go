@@ -49,6 +49,11 @@ func NewOperation(
 		e := operations.CreatePassiveOffer{Base: base}
 		err = row.UnmarshalDetails(&e)
 		result = e
+	case xdr.OperationTypeCreateMarginOffer:
+		e := operations.CreateMarginOffer{}
+		e.CreatePassiveOffer.Base = base
+		err = row.UnmarshalDetails(&e)
+		result = e
 	case xdr.OperationTypeSetOptions:
 		e := operations.SetOptions{Base: base}
 		err = row.UnmarshalDetails(&e)

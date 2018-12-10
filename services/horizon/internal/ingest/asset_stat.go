@@ -60,6 +60,10 @@ func (assetsModified AssetsModified) IngestOperation(err error, op *xdr.Operatio
 		// if this gets expensive then we can limit it to only include those assets that includes the issuer
 		assetsModified.add(body.CreatePassiveOfferOp.Buying)
 		assetsModified.add(body.CreatePassiveOfferOp.Selling)
+	case xdr.OperationTypeCreateMarginOffer:
+		// if this gets expensive then we can limit it to only include those assets that includes the issuer
+		assetsModified.add(body.CreateMarginOfferOp.Buying)
+		assetsModified.add(body.CreateMarginOfferOp.Selling)
 	case xdr.OperationTypeChangeTrust:
 		assetsModified.add(body.ChangeTrustOp.Line)
 	case xdr.OperationTypeAllowTrust:

@@ -16,6 +16,7 @@ var TypeNames = map[xdr.OperationType]string{
 	xdr.OperationTypePathPayment:        "path_payment",
 	xdr.OperationTypeManageOffer:        "manage_offer",
 	xdr.OperationTypeCreatePassiveOffer: "create_passive_offer",
+	xdr.OperationTypeCreateMarginOffer:  "create_margin_offer",
 	xdr.OperationTypeSetOptions:         "set_options",
 	xdr.OperationTypeChangeTrust:        "change_trust",
 	xdr.OperationTypeAllowTrust:         "allow_trust",
@@ -108,6 +109,11 @@ type CreatePassiveOffer struct {
 	SellingAssetType   string     `json:"selling_asset_type"`
 	SellingAssetCode   string     `json:"selling_asset_code,omitempty"`
 	SellingAssetIssuer string     `json:"selling_asset_issuer,omitempty"`
+}
+
+// CreateMarginOffer is the json resource representing a single MarginOffer
+type CreateMarginOffer struct {
+	CreatePassiveOffer
 }
 
 // ManageOffer is the json resource representing a single operation whose type
