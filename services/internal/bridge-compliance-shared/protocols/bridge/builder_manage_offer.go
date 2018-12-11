@@ -13,6 +13,7 @@ import (
 // ManageOfferOperationBody represents manage_offer operation
 type ManageOfferOperationBody struct {
 	PassiveOffer bool `json:"-"`
+	MarginOffer  bool `json:"-"`
 	Source       *string
 	Selling      protocols.Asset
 	Buying       protocols.Asset
@@ -44,7 +45,7 @@ func (op ManageOfferOperationBody) ToTransactionMutator() b.TransactionMutator {
 		mutators = append(mutators, b.SourceAccount{*op.Source})
 	}
 
-	return b.ManageOffer(op.PassiveOffer, mutators...)
+	return b.ManageOffer(op.PassiveOffer, op.MarginOffer, mutators...)
 }
 
 // Validate validates if operation body is valid.

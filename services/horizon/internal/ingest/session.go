@@ -563,9 +563,9 @@ func (is *Session) ingestTrades() {
 			trades = manageOfferResult.OffersClaimed
 			buyOffer, buyOfferExists = manageOfferResult.Offer.GetOffer()
 		} else if result.Type == xdr.OperationTypeCreateMarginOffer {
-			passiveOfferResult := result.MustCreateMarginOfferResult().MustSuccess()
-			trades = passiveOfferResult.OffersClaimed
-			buyOffer, buyOfferExists = passiveOfferResult.Offer.GetOffer()
+			marginOfferResult := result.MustCreateMarginOfferResult().MustSuccess()
+			trades = marginOfferResult.OffersClaimed
+			buyOffer, buyOfferExists = marginOfferResult.Offer.GetOffer()
 		} else {
 			passiveOfferResult := result.MustCreatePassiveOfferResult().MustSuccess()
 			trades = passiveOfferResult.OffersClaimed
