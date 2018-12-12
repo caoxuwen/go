@@ -1493,7 +1493,9 @@ var (
 //        // otherwise, authorization cannot be revoked
 //        AUTH_REVOCABLE_FLAG = 0x2,
 //        // Once set, causes all AUTH_* flags to be read-only
-//        AUTH_IMMUTABLE_FLAG = 0x4
+//        AUTH_IMMUTABLE_FLAG = 0x4,
+//        // issued assets is base asset
+//        BASE_ASSET_FLAG = 0x8
 //    };
 //
 type AccountFlags int32
@@ -1502,12 +1504,14 @@ const (
 	AccountFlagsAuthRequiredFlag  AccountFlags = 1
 	AccountFlagsAuthRevocableFlag AccountFlags = 2
 	AccountFlagsAuthImmutableFlag AccountFlags = 4
+	AccountFlagsBaseAssetFlag     AccountFlags = 8
 )
 
 var accountFlagsMap = map[int32]string{
 	1: "AccountFlagsAuthRequiredFlag",
 	2: "AccountFlagsAuthRevocableFlag",
 	4: "AccountFlagsAuthImmutableFlag",
+	8: "AccountFlagsBaseAssetFlag",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
@@ -1543,9 +1547,9 @@ var (
 
 // MaskAccountFlags is an XDR Const defines as:
 //
-//   const MASK_ACCOUNT_FLAGS = 0x7;
+//   const MASK_ACCOUNT_FLAGS = 0x15;
 //
-const MaskAccountFlags = 0x7
+const MaskAccountFlags = 0x15
 
 // AccountEntryV1Ext is an XDR NestedUnion defines as:
 //
@@ -5156,7 +5160,6 @@ var (
 //        // margin errors
 //        MANAGE_OFFER_MARGIN_NOT_ASSET = -50, // margin cannot be native
 //        MANAGE_OFFER_MARGIN_ASSET_INVALID = -51 // can only trade same debt
-//
 //    };
 //
 type ManageOfferResultCode int32
