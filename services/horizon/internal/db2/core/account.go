@@ -23,6 +23,11 @@ func (ac Account) IsAuthImmutable() bool {
 	return (ac.Flags & xdr.AccountFlagsAuthImmutableFlag) != 0
 }
 
+// IsBaseAsset returns true if the account has the "BASE_ASSET" option
+// turned on.
+func (ac Account) IsBaseAsset() bool {
+	return (ac.Flags & xdr.AccountFlagsBaseAssetFlag) != 0
+}
 
 // AccountByAddress loads a row from `accounts`, by address
 func (q *Q) AccountByAddress(dest interface{}, addy string, protocolVersion int32) error {

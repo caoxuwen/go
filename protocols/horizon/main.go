@@ -93,6 +93,7 @@ type AccountFlags struct {
 	AuthRequired  bool `json:"auth_required"`
 	AuthRevocable bool `json:"auth_revocable"`
 	AuthImmutable bool `json:"auth_immutable"`
+	BaseAsset     bool `json:"base_asset"`
 }
 
 // AccountThresholds represents an accounts "thresholds", the numerical values

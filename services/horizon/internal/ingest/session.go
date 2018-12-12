@@ -126,6 +126,9 @@ func (is *Session) effectFlagDetails(flagDetails map[string]bool, flagPtr *xdr.U
 		if flags&xdr.AccountFlagsAuthImmutableFlag != 0 {
 			flagDetails["auth_immutable_flag"] = setValue
 		}
+		if flags&xdr.AccountFlagsBaseAssetFlag != 0 {
+			flagDetails["base_asset_flag"] = setValue
+		}
 	}
 }
 
@@ -876,6 +879,11 @@ func (is *Session) operationFlagDetails(result map[string]interface{}, f int32, 
 	if (f & int32(xdr.AccountFlagsAuthImmutableFlag)) > 0 {
 		n = append(n, int32(xdr.AccountFlagsAuthImmutableFlag))
 		s = append(s, "auth_immutable")
+	}
+
+	if (f & int32(xdr.AccountFlagsBaseAssetFlag)) > 0 {
+		n = append(n, int32(xdr.AccountFlagsBaseAssetFlag))
+		s = append(s, "base_asset")
 	}
 
 	result[prefix+"_flags"] = n

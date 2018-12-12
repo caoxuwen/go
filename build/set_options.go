@@ -178,6 +178,11 @@ func SetAuthImmutable() SetFlag {
 	return SetFlag(xdr.AccountFlagsAuthImmutableFlag)
 }
 
+// SetBaseAsset sets BaseAssetFlag on SetOptions operation
+func SetBaseAsset() SetFlag {
+	return SetFlag(xdr.AccountFlagsBaseAssetFlag)
+}
+
 // MutateSetOptions for SetFlag sets the SetOptionsOp's SetFlags field
 func (m SetFlag) MutateSetOptions(o *xdr.SetOptionsOp) (err error) {
 	if !isFlagValid(xdr.AccountFlags(m)) {
@@ -214,6 +219,11 @@ func ClearAuthImmutable() ClearFlag {
 	return ClearFlag(xdr.AccountFlagsAuthImmutableFlag)
 }
 
+// ClearBaseAsset clears BaseAssetFlag on SetOptions operation
+func ClearBaseAsset() ClearFlag {
+	return ClearFlag(xdr.AccountFlagsBaseAssetFlag)
+}
+
 // MutateSetOptions for ClearFlag sets the SetOptionsOp's ClearFlags field
 func (m ClearFlag) MutateSetOptions(o *xdr.SetOptionsOp) (err error) {
 	if !isFlagValid(xdr.AccountFlags(m)) {
@@ -238,7 +248,8 @@ func (m ClearFlag) MutateTransaction(t *TransactionBuilder) error {
 func isFlagValid(flag xdr.AccountFlags) bool {
 	if flag != xdr.AccountFlagsAuthRequiredFlag &&
 		flag != xdr.AccountFlagsAuthRevocableFlag &&
-		flag != xdr.AccountFlagsAuthImmutableFlag {
+		flag != xdr.AccountFlagsAuthImmutableFlag &&
+		flag != xdr.AccountFlagsBaseAssetFlag {
 		return false
 	}
 	return true
