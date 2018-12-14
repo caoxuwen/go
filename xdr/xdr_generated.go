@@ -5159,7 +5159,8 @@ var (
 //
 //        // margin errors
 //        MANAGE_OFFER_MARGIN_NOT_ASSET = -50, // margin cannot be native
-//        MANAGE_OFFER_MARGIN_ASSET_INVALID = -51 // can only trade same debt
+//        MANAGE_OFFER_MARGIN_ASSET_INVALID = -51, // can only trade same debt
+//        MANAGE_OFFER_INSUFFICIENT_MARGIN = -52 // can only trade same debt
 //    };
 //
 type ManageOfferResultCode int32
@@ -5180,6 +5181,7 @@ const (
 	ManageOfferResultCodeManageOfferLowReserve         ManageOfferResultCode = -12
 	ManageOfferResultCodeManageOfferMarginNotAsset     ManageOfferResultCode = -50
 	ManageOfferResultCodeManageOfferMarginAssetInvalid ManageOfferResultCode = -51
+	ManageOfferResultCodeManageOfferInsufficientMargin ManageOfferResultCode = -52
 )
 
 var manageOfferResultCodeMap = map[int32]string{
@@ -5198,6 +5200,7 @@ var manageOfferResultCodeMap = map[int32]string{
 	-12: "ManageOfferResultCodeManageOfferLowReserve",
 	-50: "ManageOfferResultCodeManageOfferMarginNotAsset",
 	-51: "ManageOfferResultCodeManageOfferMarginAssetInvalid",
+	-52: "ManageOfferResultCodeManageOfferInsufficientMargin",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
