@@ -79,6 +79,7 @@ var selectTrustline = sq.Select(
 	"tl.tlimit",
 	"tl.balance",
 	"tl.flags",
+	"tl.debt",
 	// Liabilities can be NULL so can error without `coalesce`:
 	// `Invalid value for xdr.Int64`
 	"coalesce(tl.buyingliabilities, 0) as buyingliabilities",

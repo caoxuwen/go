@@ -3,10 +3,10 @@
 package core
 
 import (
-	"github.com/guregu/null"
 	"github.com/caoxuwen/go/strkey"
 	"github.com/caoxuwen/go/support/db"
 	"github.com/caoxuwen/go/xdr"
+	"github.com/guregu/null"
 )
 
 // Account is a row of data from the `accounts` table
@@ -126,6 +126,7 @@ type Trustline struct {
 	Tlimit             xdr.Int64
 	Balance            xdr.Int64
 	Flags              int32
+	Debt               xdr.Int64
 	BuyingLiabilities  xdr.Int64 `db:"buyingliabilities"`
 	SellingLiabilities xdr.Int64 `db:"sellingliabilities"`
 }

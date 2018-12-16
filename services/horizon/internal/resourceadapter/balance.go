@@ -22,6 +22,7 @@ func PopulateBalance(ctx context.Context, dest *Balance, row core.Trustline) (er
 	dest.Limit = amount.String(row.Tlimit)
 	dest.Issuer = row.Issuer
 	dest.Code = row.Assetcode
+	dest.Debt = amount.String(row.Debt)
 	return
 }
 

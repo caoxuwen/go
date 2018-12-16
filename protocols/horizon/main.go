@@ -131,6 +131,7 @@ type Balance struct {
 	Limit              string `json:"limit,omitempty"`
 	BuyingLiabilities  string `json:"buying_liabilities"`
 	SellingLiabilities string `json:"selling_liabilities"`
+	Debt               string `json:"debt"`
 	base.Asset
 }
 
