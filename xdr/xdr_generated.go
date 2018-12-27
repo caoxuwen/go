@@ -6086,7 +6086,8 @@ var (
 //        // codes considered as "failure" for the operation
 //        INFLATION_NOT_TIME = -1,
 //        INFLATION_NO_REFERENCE_PRICE = -2,
-//        INFLATION_INVALID_MID_PRICE = -3
+//        INFLATION_INVALID_MID_PRICE = -3,
+//        INFLATION_DEBT_NOT_ZERO = -4
 //    };
 //
 type InflationResultCode int32
@@ -6096,6 +6097,7 @@ const (
 	InflationResultCodeInflationNotTime          InflationResultCode = -1
 	InflationResultCodeInflationNoReferencePrice InflationResultCode = -2
 	InflationResultCodeInflationInvalidMidPrice  InflationResultCode = -3
+	InflationResultCodeInflationDebtNotZero      InflationResultCode = -4
 )
 
 var inflationResultCodeMap = map[int32]string{
@@ -6103,6 +6105,7 @@ var inflationResultCodeMap = map[int32]string{
 	-1: "InflationResultCodeInflationNotTime",
 	-2: "InflationResultCodeInflationNoReferencePrice",
 	-3: "InflationResultCodeInflationInvalidMidPrice",
+	-4: "InflationResultCodeInflationDebtNotZero",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
@@ -6141,11 +6144,13 @@ var (
 //   struct InflationPayout // or use PaymentResultAtom to limit types?
 //    {
 //        AccountID destination;
+//        Asset asset;
 //        int64 amount;
 //    };
 //
 type InflationPayout struct {
 	Destination AccountId
+	Asset       Asset
 	Amount      Int64
 }
 

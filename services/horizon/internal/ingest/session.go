@@ -339,12 +339,34 @@ func (is *Session) ingestEffects() {
 	case xdr.OperationTypeInflation:
 		payouts := is.Cursor.OperationResult().MustInflationResult().MustPayouts()
 		for _, payout := range payouts {
-			effects.Add(payout.Destination, history.EffectAccountCredited,
-				map[string]interface{}{
-					"amount":     amount.String(payout.Amount),
-					"asset_type": "native",
-				},
-			)
+			if payout.Asset.Type == xdr.AssetTypeAssetTypeNative {
+				effects.Add(payout.Destination, history.EffectAccountCredited,
+					map[string]interface{}{
+						"amount":       amount.String(payout.Amount),
+						"asset_type":   "native",
+						"asset_code":   "",
+						"asset_issuer": "",
+					},
+				)
+			} else if payout.Asset.Type == xdr.AssetTypeAssetTypeCreditAlphanum4 {
+				effects.Add(payout.Destination, history.EffectAccountCredited,
+					map[string]interface{}{
+						"amount":       amount.String(payout.Amount),
+						"asset_type":   "credit_alphanum4",
+						"asset_code":   string(payout.Asset.AlphaNum4.AssetCode[:]),
+						"asset_issuer": payout.Asset.AlphaNum4.Issuer.Address(),
+					},
+				)
+			} else if payout.Asset.Type == xdr.AssetTypeAssetTypeCreditAlphanum12 {
+				effects.Add(payout.Destination, history.EffectAccountCredited,
+					map[string]interface{}{
+						"amount":       amount.String(payout.Amount),
+						"asset_type":   "credit_alphanum12",
+						"asset_code":   string(payout.Asset.AlphaNum12.AssetCode[:]),
+						"asset_issuer": payout.Asset.AlphaNum12.Issuer.Address(),
+					},
+				)
+			}
 		}
 	case xdr.OperationTypeManageData:
 		op := opbody.MustManageDataOp()
