@@ -35,6 +35,8 @@ const (
 	OperationTypeAccountMerge OperationType = "account_merge"
 	// OperationTypeInflation represents inflation operation
 	OperationTypeInflation OperationType = "inflation"
+	// OperationTypeLiquidation represents liquidation operation
+	OperationTypeLiquidation OperationType = "liquidation"
 	// OperationTypeManageData represents manage_data operation
 	OperationTypeManageData OperationType = "manage_data"
 )
@@ -100,6 +102,10 @@ func (r BuilderRequest) Process() error {
 			var inflation InflationOperationBody
 			err = json.Unmarshal(operation.RawBody, &inflation)
 			operationBody = inflation
+		case OperationTypeLiquidation:
+			var liquidation LiquidationOperationBody
+			err = json.Unmarshal(operation.RawBody, &liquidation)
+			operationBody = liquidation
 		case OperationTypeManageData:
 			var manageData ManageDataOperationBody
 			err = json.Unmarshal(operation.RawBody, &manageData)

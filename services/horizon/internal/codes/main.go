@@ -241,6 +241,21 @@ func String(code interface{}) (string, error) {
 			return OpSuccess, nil
 		case xdr.InflationResultCodeInflationNotTime:
 			return "op_not_time", nil
+		case xdr.InflationResultCodeInflationNoReferencePrice:
+			return "op_no_reference_price", nil
+		case xdr.InflationResultCodeInflationInvalidMidPrice:
+			return "op_invalid_mid_price", nil
+		case xdr.InflationResultCodeInflationDebtNotZero:
+			return "op_debt_not_zero", nil
+		}
+	case xdr.LiquidationResultCode:
+		switch code {
+		case xdr.LiquidationResultCodeLiquidationSuccess:
+			return OpSuccess, nil
+		case xdr.LiquidationResultCodeLiquidationNotTime:
+			return "op_not_time", nil
+		case xdr.LiquidationResultCodeLiquidationNoReferencePrice:
+			return "op_no_reference_price", nil
 		}
 	case xdr.ManageDataResultCode:
 		switch code {
@@ -300,6 +315,8 @@ func ForOperationResult(opr xdr.OperationResult) (string, error) {
 		ic = ir.MustAccountMergeResult().Code
 	case xdr.OperationTypeInflation:
 		ic = ir.MustInflationResult().Code
+	case xdr.OperationTypeLiquidation:
+		ic = ir.MustLiquidationResult().Code
 	case xdr.OperationTypeManageData:
 		ic = ir.MustManageDataResult().Code
 	case xdr.OperationTypeBumpSequence:

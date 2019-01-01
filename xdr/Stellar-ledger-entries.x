@@ -156,11 +156,13 @@ struct AccountEntry
 enum TrustLineFlags
 {
     // issuer has authorized account to perform transactions with its credit
-    AUTHORIZED_FLAG = 1
+    AUTHORIZED_FLAG = 0x1,
+    // under liquidation process
+    LIQUIDATION_FLAG = 0x2
 };
 
 // mask for all trustline flags
-const MASK_TRUSTLINE_FLAGS = 1;
+const MASK_TRUSTLINE_FLAGS = 0x3;
 
 struct TrustLineEntry
 {

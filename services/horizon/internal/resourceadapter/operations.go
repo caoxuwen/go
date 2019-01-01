@@ -74,6 +74,10 @@ func NewOperation(
 		e := operations.Inflation{Base: base}
 		err = row.UnmarshalDetails(&e)
 		result = e
+	case xdr.OperationTypeLiquidation:
+		e := operations.Liquidation{Base: base}
+		err = row.UnmarshalDetails(&e)
+		result = e
 	case xdr.OperationTypeManageData:
 		e := operations.ManageData{Base: base}
 		err = row.UnmarshalDetails(&e)

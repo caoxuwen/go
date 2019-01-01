@@ -1824,17 +1824,21 @@ var (
 //   enum TrustLineFlags
 //    {
 //        // issuer has authorized account to perform transactions with its credit
-//        AUTHORIZED_FLAG = 1
+//        AUTHORIZED_FLAG = 0x1,
+//        // under liquidation process
+//        LIQUIDATION_FLAG = 0x2
 //    };
 //
 type TrustLineFlags int32
 
 const (
-	TrustLineFlagsAuthorizedFlag TrustLineFlags = 1
+	TrustLineFlagsAuthorizedFlag  TrustLineFlags = 1
+	TrustLineFlagsLiquidationFlag TrustLineFlags = 2
 )
 
 var trustLineFlagsMap = map[int32]string{
 	1: "TrustLineFlagsAuthorizedFlag",
+	2: "TrustLineFlagsLiquidationFlag",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
@@ -1870,9 +1874,9 @@ var (
 
 // MaskTrustlineFlags is an XDR Const defines as:
 //
-//   const MASK_TRUSTLINE_FLAGS = 1;
+//   const MASK_TRUSTLINE_FLAGS = 0x3;
 //
-const MaskTrustlineFlags = 1
+const MaskTrustlineFlags = 0x3
 
 // TrustLineEntryV1Ext is an XDR NestedUnion defines as:
 //
@@ -2809,7 +2813,8 @@ var (
 //        INFLATION = 9,
 //        MANAGE_DATA = 10,
 //        BUMP_SEQUENCE = 11,
-//        CREATE_MARGIN_OFFER = 101
+//        CREATE_MARGIN_OFFER = 101,
+//        LIQUIDATION = 102
 //    };
 //
 type OperationType int32
@@ -2828,6 +2833,7 @@ const (
 	OperationTypeManageData         OperationType = 10
 	OperationTypeBumpSequence       OperationType = 11
 	OperationTypeCreateMarginOffer  OperationType = 101
+	OperationTypeLiquidation        OperationType = 102
 )
 
 var operationTypeMap = map[int32]string{
@@ -2844,6 +2850,7 @@ var operationTypeMap = map[int32]string{
 	10:  "OperationTypeManageData",
 	11:  "OperationTypeBumpSequence",
 	101: "OperationTypeCreateMarginOffer",
+	102: "OperationTypeLiquidation",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
@@ -3441,6 +3448,8 @@ var (
 //            ManageDataOp manageDataOp;
 //        case BUMP_SEQUENCE:
 //            BumpSequenceOp bumpSequenceOp;
+//        case LIQUIDATION:
+//            void;
 //        }
 //
 type OperationBody struct {
@@ -3495,6 +3504,8 @@ func (u OperationBody) ArmForSwitch(sw int32) (string, bool) {
 		return "ManageDataOp", true
 	case OperationTypeBumpSequence:
 		return "BumpSequenceOp", true
+	case OperationTypeLiquidation:
+		return "", true
 	}
 	return "-", false
 }
@@ -3589,6 +3600,8 @@ func NewOperationBody(aType OperationType, value interface{}) (result OperationB
 			return
 		}
 		result.BumpSequenceOp = &tv
+	case OperationTypeLiquidation:
+		// void
 	}
 	return
 }
@@ -3948,6 +3961,8 @@ var (
 //            ManageDataOp manageDataOp;
 //        case BUMP_SEQUENCE:
 //            BumpSequenceOp bumpSequenceOp;
+//        case LIQUIDATION:
+//            void;
 //        }
 //        body;
 //    };
@@ -6264,6 +6279,187 @@ var (
 	_ encoding.BinaryUnmarshaler = (*InflationResult)(nil)
 )
 
+// LiquidationResultCode is an XDR Enum defines as:
+//
+//   enum LiquidationResultCode
+//    {
+//        // codes considered as "success" for the operation
+//        LIQUIDATION_SUCCESS = 0,
+//        // codes considered as "failure" for the operation
+//        LIQUIDATION_NOT_TIME = -1,
+//        LIQUIDATION_NO_REFERENCE_PRICE = -2
+//    };
+//
+type LiquidationResultCode int32
+
+const (
+	LiquidationResultCodeLiquidationSuccess          LiquidationResultCode = 0
+	LiquidationResultCodeLiquidationNotTime          LiquidationResultCode = -1
+	LiquidationResultCodeLiquidationNoReferencePrice LiquidationResultCode = -2
+)
+
+var liquidationResultCodeMap = map[int32]string{
+	0:  "LiquidationResultCodeLiquidationSuccess",
+	-1: "LiquidationResultCodeLiquidationNotTime",
+	-2: "LiquidationResultCodeLiquidationNoReferencePrice",
+}
+
+// ValidEnum validates a proposed value for this enum.  Implements
+// the Enum interface for LiquidationResultCode
+func (e LiquidationResultCode) ValidEnum(v int32) bool {
+	_, ok := liquidationResultCodeMap[v]
+	return ok
+}
+
+// String returns the name of `e`
+func (e LiquidationResultCode) String() string {
+	name, _ := liquidationResultCodeMap[int32(e)]
+	return name
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler.
+func (s LiquidationResultCode) MarshalBinary() ([]byte, error) {
+	b := new(bytes.Buffer)
+	_, err := Marshal(b, s)
+	return b.Bytes(), err
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler.
+func (s *LiquidationResultCode) UnmarshalBinary(inp []byte) error {
+	_, err := Unmarshal(bytes.NewReader(inp), s)
+	return err
+}
+
+var (
+	_ encoding.BinaryMarshaler   = (*LiquidationResultCode)(nil)
+	_ encoding.BinaryUnmarshaler = (*LiquidationResultCode)(nil)
+)
+
+// LiquidationEffect is an XDR Struct defines as:
+//
+//   struct LiquidationEffect // or use PaymentResultAtom to limit types?
+//    {
+//        AccountID destination;
+//        Asset asset;
+//        int64 amount;
+//    };
+//
+type LiquidationEffect struct {
+	Destination AccountId
+	Asset       Asset
+	Amount      Int64
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler.
+func (s LiquidationEffect) MarshalBinary() ([]byte, error) {
+	b := new(bytes.Buffer)
+	_, err := Marshal(b, s)
+	return b.Bytes(), err
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler.
+func (s *LiquidationEffect) UnmarshalBinary(inp []byte) error {
+	_, err := Unmarshal(bytes.NewReader(inp), s)
+	return err
+}
+
+var (
+	_ encoding.BinaryMarshaler   = (*LiquidationEffect)(nil)
+	_ encoding.BinaryUnmarshaler = (*LiquidationEffect)(nil)
+)
+
+// LiquidationResult is an XDR Union defines as:
+//
+//   union LiquidationResult switch (LiquidationResultCode code)
+//    {
+//    case LIQUIDATION_SUCCESS:
+//        LiquidationEffect effects<>;
+//    default:
+//        void;
+//    };
+//
+type LiquidationResult struct {
+	Code    LiquidationResultCode
+	Effects *[]LiquidationEffect
+}
+
+// SwitchFieldName returns the field name in which this union's
+// discriminant is stored
+func (u LiquidationResult) SwitchFieldName() string {
+	return "Code"
+}
+
+// ArmForSwitch returns which field name should be used for storing
+// the value for an instance of LiquidationResult
+func (u LiquidationResult) ArmForSwitch(sw int32) (string, bool) {
+	switch LiquidationResultCode(sw) {
+	case LiquidationResultCodeLiquidationSuccess:
+		return "Effects", true
+	default:
+		return "", true
+	}
+}
+
+// NewLiquidationResult creates a new  LiquidationResult.
+func NewLiquidationResult(code LiquidationResultCode, value interface{}) (result LiquidationResult, err error) {
+	result.Code = code
+	switch LiquidationResultCode(code) {
+	case LiquidationResultCodeLiquidationSuccess:
+		tv, ok := value.([]LiquidationEffect)
+		if !ok {
+			err = fmt.Errorf("invalid value, must be []LiquidationEffect")
+			return
+		}
+		result.Effects = &tv
+	default:
+		// void
+	}
+	return
+}
+
+// MustEffects retrieves the Effects value from the union,
+// panicing if the value is not set.
+func (u LiquidationResult) MustEffects() []LiquidationEffect {
+	val, ok := u.GetEffects()
+
+	if !ok {
+		panic("arm Effects is not set")
+	}
+
+	return val
+}
+
+// GetEffects retrieves the Effects value from the union,
+// returning ok if the union's switch indicated the value is valid.
+func (u LiquidationResult) GetEffects() (result []LiquidationEffect, ok bool) {
+	armName, _ := u.ArmForSwitch(int32(u.Code))
+
+	if armName == "Effects" {
+		result = *u.Effects
+		ok = true
+	}
+
+	return
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler.
+func (s LiquidationResult) MarshalBinary() ([]byte, error) {
+	b := new(bytes.Buffer)
+	_, err := Marshal(b, s)
+	return b.Bytes(), err
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler.
+func (s *LiquidationResult) UnmarshalBinary(inp []byte) error {
+	_, err := Unmarshal(bytes.NewReader(inp), s)
+	return err
+}
+
+var (
+	_ encoding.BinaryMarshaler   = (*LiquidationResult)(nil)
+	_ encoding.BinaryUnmarshaler = (*LiquidationResult)(nil)
+)
+
 // ManageDataResultCode is an XDR Enum defines as:
 //
 //   enum ManageDataResultCode
@@ -6591,6 +6787,8 @@ var (
 //            ManageDataResult manageDataResult;
 //        case BUMP_SEQUENCE:
 //            BumpSequenceResult bumpSeqResult;
+//        case LIQUIDATION:
+//            LiquidationResult liquidationResult;
 //        }
 //
 type OperationResultTr struct {
@@ -6608,6 +6806,7 @@ type OperationResultTr struct {
 	InflationResult          *InflationResult
 	ManageDataResult         *ManageDataResult
 	BumpSeqResult            *BumpSequenceResult
+	LiquidationResult        *LiquidationResult
 }
 
 // SwitchFieldName returns the field name in which this union's
@@ -6646,6 +6845,8 @@ func (u OperationResultTr) ArmForSwitch(sw int32) (string, bool) {
 		return "ManageDataResult", true
 	case OperationTypeBumpSequence:
 		return "BumpSeqResult", true
+	case OperationTypeLiquidation:
+		return "LiquidationResult", true
 	}
 	return "-", false
 }
@@ -6745,6 +6946,13 @@ func NewOperationResultTr(aType OperationType, value interface{}) (result Operat
 			return
 		}
 		result.BumpSeqResult = &tv
+	case OperationTypeLiquidation:
+		tv, ok := value.(LiquidationResult)
+		if !ok {
+			err = fmt.Errorf("invalid value, must be LiquidationResult")
+			return
+		}
+		result.LiquidationResult = &tv
 	}
 	return
 }
@@ -7074,6 +7282,31 @@ func (u OperationResultTr) GetBumpSeqResult() (result BumpSequenceResult, ok boo
 	return
 }
 
+// MustLiquidationResult retrieves the LiquidationResult value from the union,
+// panicing if the value is not set.
+func (u OperationResultTr) MustLiquidationResult() LiquidationResult {
+	val, ok := u.GetLiquidationResult()
+
+	if !ok {
+		panic("arm LiquidationResult is not set")
+	}
+
+	return val
+}
+
+// GetLiquidationResult retrieves the LiquidationResult value from the union,
+// returning ok if the union's switch indicated the value is valid.
+func (u OperationResultTr) GetLiquidationResult() (result LiquidationResult, ok bool) {
+	armName, _ := u.ArmForSwitch(int32(u.Type))
+
+	if armName == "LiquidationResult" {
+		result = *u.LiquidationResult
+		ok = true
+	}
+
+	return
+}
+
 // MarshalBinary implements encoding.BinaryMarshaler.
 func (s OperationResultTr) MarshalBinary() ([]byte, error) {
 	b := new(bytes.Buffer)
@@ -7125,6 +7358,8 @@ var (
 //            ManageDataResult manageDataResult;
 //        case BUMP_SEQUENCE:
 //            BumpSequenceResult bumpSeqResult;
+//        case LIQUIDATION:
+//            LiquidationResult liquidationResult;
 //        }
 //        tr;
 //    default:
@@ -7704,6 +7939,8 @@ var (
 //        Hash bucketListHash;     // hash of the ledger state
 //
 //        uint32 ledgerSeq; // sequence number of this ledger
+//        uint64 lastFunding; // last funding run
+//        uint64 lastLiquidation; // last liquidation run
 //
 //        int64 totalCoins; // total number of stroops in existence.
 //                          // 10,000,000 stroops in 1 XLM
@@ -7740,6 +7977,8 @@ type LedgerHeader struct {
 	TxSetResultHash    Hash
 	BucketListHash     Hash
 	LedgerSeq          Uint32
+	LastFunding        Uint64
+	LastLiquidation    Uint64
 	TotalCoins         Int64
 	FeePool            Int64
 	InflationSeq       Uint32

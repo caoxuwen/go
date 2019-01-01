@@ -44,6 +44,8 @@ func ForOperation(
 		result = append(result, op.Body.MustDestination())
 	case xdr.OperationTypeInflation:
 		// the only direct participant is the source_account
+	case xdr.OperationTypeLiquidation:
+		// the only direct participant is the source_account
 	case xdr.OperationTypeManageData:
 		// the only direct participant is the source_account
 	case xdr.OperationTypeBumpSequence:

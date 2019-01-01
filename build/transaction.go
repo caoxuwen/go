@@ -208,6 +208,19 @@ func (m InflationBuilder) MutateTransaction(o *TransactionBuilder) error {
 	return m.Err
 }
 
+// MutateTransaction for LiquidationBuilder causes the underylying
+// LiquidationOp to be added to the operation list for the provided
+// transaction
+func (m LiquidationBuilder) MutateTransaction(o *TransactionBuilder) error {
+	if m.Err != nil {
+		return m.Err
+	}
+
+	m.O.Body, m.Err = xdr.NewOperationBody(xdr.OperationTypeLiquidation, nil)
+	o.TX.Operations = append(o.TX.Operations, m.O)
+	return m.Err
+}
+
 // MutateTransaction for ManageDataBuilder causes the underylying
 // ManageData to be added to the operation list for the provided
 // transaction

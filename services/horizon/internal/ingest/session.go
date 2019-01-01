@@ -368,6 +368,9 @@ func (is *Session) ingestEffects() {
 				)
 			}
 		}
+	case xdr.OperationTypeLiquidation:
+		//liquidation_effects := is.Cursor.OperationResult().MustLiquidationResult().MustEffects()
+		// TODO:
 	case xdr.OperationTypeManageData:
 		op := opbody.MustManageDataOp()
 		dets := map[string]interface{}{"name": op.DataName}
@@ -863,6 +866,8 @@ func (is *Session) operationDetails() map[string]interface{} {
 		details["into"] = aid.Address()
 	case xdr.OperationTypeInflation:
 		// no inflation details, presently
+	case xdr.OperationTypeLiquidation:
+		// no liquidation details, presently
 	case xdr.OperationTypeManageData:
 		op := c.Operation().Body.MustManageDataOp()
 		details["name"] = string(op.DataName)

@@ -22,6 +22,7 @@ var TypeNames = map[xdr.OperationType]string{
 	xdr.OperationTypeAllowTrust:         "allow_trust",
 	xdr.OperationTypeAccountMerge:       "account_merge",
 	xdr.OperationTypeInflation:          "inflation",
+	xdr.OperationTypeLiquidation:        "liquidation",
 	xdr.OperationTypeManageData:         "manage_data",
 	xdr.OperationTypeBumpSequence:       "bump_sequence",
 }
@@ -175,5 +176,11 @@ type AccountMerge struct {
 // Inflation is the json resource representing a single operation whose type is
 // Inflation.
 type Inflation struct {
+	Base
+}
+
+// Liquidation is the json resource representing a single operation whose type is
+// Liquidation.
+type Liquidation struct {
 	Base
 }
