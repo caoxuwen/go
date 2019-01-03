@@ -2814,26 +2814,28 @@ var (
 //        MANAGE_DATA = 10,
 //        BUMP_SEQUENCE = 11,
 //        CREATE_MARGIN_OFFER = 101,
-//        LIQUIDATION = 102
+//        LIQUIDATION = 102,
+//        CREATE_LIQUIDATION_OFFER = 103
 //    };
 //
 type OperationType int32
 
 const (
-	OperationTypeCreateAccount      OperationType = 0
-	OperationTypePayment            OperationType = 1
-	OperationTypePathPayment        OperationType = 2
-	OperationTypeManageOffer        OperationType = 3
-	OperationTypeCreatePassiveOffer OperationType = 4
-	OperationTypeSetOptions         OperationType = 5
-	OperationTypeChangeTrust        OperationType = 6
-	OperationTypeAllowTrust         OperationType = 7
-	OperationTypeAccountMerge       OperationType = 8
-	OperationTypeInflation          OperationType = 9
-	OperationTypeManageData         OperationType = 10
-	OperationTypeBumpSequence       OperationType = 11
-	OperationTypeCreateMarginOffer  OperationType = 101
-	OperationTypeLiquidation        OperationType = 102
+	OperationTypeCreateAccount          OperationType = 0
+	OperationTypePayment                OperationType = 1
+	OperationTypePathPayment            OperationType = 2
+	OperationTypeManageOffer            OperationType = 3
+	OperationTypeCreatePassiveOffer     OperationType = 4
+	OperationTypeSetOptions             OperationType = 5
+	OperationTypeChangeTrust            OperationType = 6
+	OperationTypeAllowTrust             OperationType = 7
+	OperationTypeAccountMerge           OperationType = 8
+	OperationTypeInflation              OperationType = 9
+	OperationTypeManageData             OperationType = 10
+	OperationTypeBumpSequence           OperationType = 11
+	OperationTypeCreateMarginOffer      OperationType = 101
+	OperationTypeLiquidation            OperationType = 102
+	OperationTypeCreateLiquidationOffer OperationType = 103
 )
 
 var operationTypeMap = map[int32]string{
@@ -2851,6 +2853,7 @@ var operationTypeMap = map[int32]string{
 	11:  "OperationTypeBumpSequence",
 	101: "OperationTypeCreateMarginOffer",
 	102: "OperationTypeLiquidation",
+	103: "OperationTypeCreateLiquidationOffer",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
@@ -3098,6 +3101,41 @@ func (s *CreateMarginOfferOp) UnmarshalBinary(inp []byte) error {
 var (
 	_ encoding.BinaryMarshaler   = (*CreateMarginOfferOp)(nil)
 	_ encoding.BinaryUnmarshaler = (*CreateMarginOfferOp)(nil)
+)
+
+// CreateLiquidationOfferOp is an XDR Struct defines as:
+//
+//   struct CreateLiquidationOfferOp
+//    {
+//        Asset selling; // A
+//        Asset buying;  // B
+//        int64 amount;  // amount taker gets. if set to 0, delete the offer
+//        Price price;   // cost of A in terms of B
+//    };
+//
+type CreateLiquidationOfferOp struct {
+	Selling Asset
+	Buying  Asset
+	Amount  Int64
+	Price   Price
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler.
+func (s CreateLiquidationOfferOp) MarshalBinary() ([]byte, error) {
+	b := new(bytes.Buffer)
+	_, err := Marshal(b, s)
+	return b.Bytes(), err
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler.
+func (s *CreateLiquidationOfferOp) UnmarshalBinary(inp []byte) error {
+	_, err := Unmarshal(bytes.NewReader(inp), s)
+	return err
+}
+
+var (
+	_ encoding.BinaryMarshaler   = (*CreateLiquidationOfferOp)(nil)
+	_ encoding.BinaryUnmarshaler = (*CreateLiquidationOfferOp)(nil)
 )
 
 // SetOptionsOp is an XDR Struct defines as:
@@ -3434,6 +3472,8 @@ var (
 //            CreatePassiveOfferOp createPassiveOfferOp;
 //        case CREATE_MARGIN_OFFER:
 //            CreateMarginOfferOp createMarginOfferOp;
+//        case CREATE_LIQUIDATION_OFFER:
+//            CreateLiquidationOfferOp createLiquidationOfferOp;
 //        case SET_OPTIONS:
 //            SetOptionsOp setOptionsOp;
 //        case CHANGE_TRUST:
@@ -3453,19 +3493,20 @@ var (
 //        }
 //
 type OperationBody struct {
-	Type                 OperationType
-	CreateAccountOp      *CreateAccountOp
-	PaymentOp            *PaymentOp
-	PathPaymentOp        *PathPaymentOp
-	ManageOfferOp        *ManageOfferOp
-	CreatePassiveOfferOp *CreatePassiveOfferOp
-	CreateMarginOfferOp  *CreateMarginOfferOp
-	SetOptionsOp         *SetOptionsOp
-	ChangeTrustOp        *ChangeTrustOp
-	AllowTrustOp         *AllowTrustOp
-	Destination          *AccountId
-	ManageDataOp         *ManageDataOp
-	BumpSequenceOp       *BumpSequenceOp
+	Type                     OperationType
+	CreateAccountOp          *CreateAccountOp
+	PaymentOp                *PaymentOp
+	PathPaymentOp            *PathPaymentOp
+	ManageOfferOp            *ManageOfferOp
+	CreatePassiveOfferOp     *CreatePassiveOfferOp
+	CreateMarginOfferOp      *CreateMarginOfferOp
+	CreateLiquidationOfferOp *CreateLiquidationOfferOp
+	SetOptionsOp             *SetOptionsOp
+	ChangeTrustOp            *ChangeTrustOp
+	AllowTrustOp             *AllowTrustOp
+	Destination              *AccountId
+	ManageDataOp             *ManageDataOp
+	BumpSequenceOp           *BumpSequenceOp
 }
 
 // SwitchFieldName returns the field name in which this union's
@@ -3490,6 +3531,8 @@ func (u OperationBody) ArmForSwitch(sw int32) (string, bool) {
 		return "CreatePassiveOfferOp", true
 	case OperationTypeCreateMarginOffer:
 		return "CreateMarginOfferOp", true
+	case OperationTypeCreateLiquidationOffer:
+		return "CreateLiquidationOfferOp", true
 	case OperationTypeSetOptions:
 		return "SetOptionsOp", true
 	case OperationTypeChangeTrust:
@@ -3556,6 +3599,13 @@ func NewOperationBody(aType OperationType, value interface{}) (result OperationB
 			return
 		}
 		result.CreateMarginOfferOp = &tv
+	case OperationTypeCreateLiquidationOffer:
+		tv, ok := value.(CreateLiquidationOfferOp)
+		if !ok {
+			err = fmt.Errorf("invalid value, must be CreateLiquidationOfferOp")
+			return
+		}
+		result.CreateLiquidationOfferOp = &tv
 	case OperationTypeSetOptions:
 		tv, ok := value.(SetOptionsOp)
 		if !ok {
@@ -3756,6 +3806,31 @@ func (u OperationBody) GetCreateMarginOfferOp() (result CreateMarginOfferOp, ok 
 	return
 }
 
+// MustCreateLiquidationOfferOp retrieves the CreateLiquidationOfferOp value from the union,
+// panicing if the value is not set.
+func (u OperationBody) MustCreateLiquidationOfferOp() CreateLiquidationOfferOp {
+	val, ok := u.GetCreateLiquidationOfferOp()
+
+	if !ok {
+		panic("arm CreateLiquidationOfferOp is not set")
+	}
+
+	return val
+}
+
+// GetCreateLiquidationOfferOp retrieves the CreateLiquidationOfferOp value from the union,
+// returning ok if the union's switch indicated the value is valid.
+func (u OperationBody) GetCreateLiquidationOfferOp() (result CreateLiquidationOfferOp, ok bool) {
+	armName, _ := u.ArmForSwitch(int32(u.Type))
+
+	if armName == "CreateLiquidationOfferOp" {
+		result = *u.CreateLiquidationOfferOp
+		ok = true
+	}
+
+	return
+}
+
 // MustSetOptionsOp retrieves the SetOptionsOp value from the union,
 // panicing if the value is not set.
 func (u OperationBody) MustSetOptionsOp() SetOptionsOp {
@@ -3947,6 +4022,8 @@ var (
 //            CreatePassiveOfferOp createPassiveOfferOp;
 //        case CREATE_MARGIN_OFFER:
 //            CreateMarginOfferOp createMarginOfferOp;
+//        case CREATE_LIQUIDATION_OFFER:
+//            CreateLiquidationOfferOp createLiquidationOfferOp;
 //        case SET_OPTIONS:
 //            SetOptionsOp setOptionsOp;
 //        case CHANGE_TRUST:
@@ -6773,6 +6850,8 @@ var (
 //            ManageOfferResult createPassiveOfferResult;
 //        case CREATE_MARGIN_OFFER:
 //            ManageOfferResult createMarginOfferResult;
+//        case CREATE_LIQUIDATION_OFFER:
+//            ManageOfferResult createLiquidationOfferResult;
 //        case SET_OPTIONS:
 //            SetOptionsResult setOptionsResult;
 //        case CHANGE_TRUST:
@@ -6792,21 +6871,22 @@ var (
 //        }
 //
 type OperationResultTr struct {
-	Type                     OperationType
-	CreateAccountResult      *CreateAccountResult
-	PaymentResult            *PaymentResult
-	PathPaymentResult        *PathPaymentResult
-	ManageOfferResult        *ManageOfferResult
-	CreatePassiveOfferResult *ManageOfferResult
-	CreateMarginOfferResult  *ManageOfferResult
-	SetOptionsResult         *SetOptionsResult
-	ChangeTrustResult        *ChangeTrustResult
-	AllowTrustResult         *AllowTrustResult
-	AccountMergeResult       *AccountMergeResult
-	InflationResult          *InflationResult
-	ManageDataResult         *ManageDataResult
-	BumpSeqResult            *BumpSequenceResult
-	LiquidationResult        *LiquidationResult
+	Type                         OperationType
+	CreateAccountResult          *CreateAccountResult
+	PaymentResult                *PaymentResult
+	PathPaymentResult            *PathPaymentResult
+	ManageOfferResult            *ManageOfferResult
+	CreatePassiveOfferResult     *ManageOfferResult
+	CreateMarginOfferResult      *ManageOfferResult
+	CreateLiquidationOfferResult *ManageOfferResult
+	SetOptionsResult             *SetOptionsResult
+	ChangeTrustResult            *ChangeTrustResult
+	AllowTrustResult             *AllowTrustResult
+	AccountMergeResult           *AccountMergeResult
+	InflationResult              *InflationResult
+	ManageDataResult             *ManageDataResult
+	BumpSeqResult                *BumpSequenceResult
+	LiquidationResult            *LiquidationResult
 }
 
 // SwitchFieldName returns the field name in which this union's
@@ -6831,6 +6911,8 @@ func (u OperationResultTr) ArmForSwitch(sw int32) (string, bool) {
 		return "CreatePassiveOfferResult", true
 	case OperationTypeCreateMarginOffer:
 		return "CreateMarginOfferResult", true
+	case OperationTypeCreateLiquidationOffer:
+		return "CreateLiquidationOfferResult", true
 	case OperationTypeSetOptions:
 		return "SetOptionsResult", true
 	case OperationTypeChangeTrust:
@@ -6897,6 +6979,13 @@ func NewOperationResultTr(aType OperationType, value interface{}) (result Operat
 			return
 		}
 		result.CreateMarginOfferResult = &tv
+	case OperationTypeCreateLiquidationOffer:
+		tv, ok := value.(ManageOfferResult)
+		if !ok {
+			err = fmt.Errorf("invalid value, must be ManageOfferResult")
+			return
+		}
+		result.CreateLiquidationOfferResult = &tv
 	case OperationTypeSetOptions:
 		tv, ok := value.(SetOptionsResult)
 		if !ok {
@@ -7101,6 +7190,31 @@ func (u OperationResultTr) GetCreateMarginOfferResult() (result ManageOfferResul
 
 	if armName == "CreateMarginOfferResult" {
 		result = *u.CreateMarginOfferResult
+		ok = true
+	}
+
+	return
+}
+
+// MustCreateLiquidationOfferResult retrieves the CreateLiquidationOfferResult value from the union,
+// panicing if the value is not set.
+func (u OperationResultTr) MustCreateLiquidationOfferResult() ManageOfferResult {
+	val, ok := u.GetCreateLiquidationOfferResult()
+
+	if !ok {
+		panic("arm CreateLiquidationOfferResult is not set")
+	}
+
+	return val
+}
+
+// GetCreateLiquidationOfferResult retrieves the CreateLiquidationOfferResult value from the union,
+// returning ok if the union's switch indicated the value is valid.
+func (u OperationResultTr) GetCreateLiquidationOfferResult() (result ManageOfferResult, ok bool) {
+	armName, _ := u.ArmForSwitch(int32(u.Type))
+
+	if armName == "CreateLiquidationOfferResult" {
+		result = *u.CreateLiquidationOfferResult
 		ok = true
 	}
 
@@ -7344,6 +7458,8 @@ var (
 //            ManageOfferResult createPassiveOfferResult;
 //        case CREATE_MARGIN_OFFER:
 //            ManageOfferResult createMarginOfferResult;
+//        case CREATE_LIQUIDATION_OFFER:
+//            ManageOfferResult createLiquidationOfferResult;
 //        case SET_OPTIONS:
 //            SetOptionsResult setOptionsResult;
 //        case CHANGE_TRUST:
