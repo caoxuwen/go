@@ -3111,6 +3111,9 @@ var (
 //        Asset buying;  // B
 //        int64 amount;  // amount taker gets. if set to 0, delete the offer
 //        Price price;   // cost of A in terms of B
+//
+//        // 0=create a new offer, otherwise edit an existing offer
+//        uint64 offerID;
 //    };
 //
 type CreateLiquidationOfferOp struct {
@@ -3118,6 +3121,7 @@ type CreateLiquidationOfferOp struct {
 	Buying  Asset
 	Amount  Int64
 	Price   Price
+	OfferId Uint64
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler.
@@ -6364,7 +6368,8 @@ var (
 //        LIQUIDATION_SUCCESS = 0,
 //        // codes considered as "failure" for the operation
 //        LIQUIDATION_NOT_TIME = -1,
-//        LIQUIDATION_NO_REFERENCE_PRICE = -2
+//        LIQUIDATION_NO_REFERENCE_PRICE = -2,
+//        LIQUIDATION_PROCESS_ERROR = -3
 //    };
 //
 type LiquidationResultCode int32
@@ -6373,12 +6378,14 @@ const (
 	LiquidationResultCodeLiquidationSuccess          LiquidationResultCode = 0
 	LiquidationResultCodeLiquidationNotTime          LiquidationResultCode = -1
 	LiquidationResultCodeLiquidationNoReferencePrice LiquidationResultCode = -2
+	LiquidationResultCodeLiquidationProcessError     LiquidationResultCode = -3
 )
 
 var liquidationResultCodeMap = map[int32]string{
 	0:  "LiquidationResultCodeLiquidationSuccess",
 	-1: "LiquidationResultCodeLiquidationNotTime",
 	-2: "LiquidationResultCodeLiquidationNoReferencePrice",
+	-3: "LiquidationResultCodeLiquidationProcessError",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
