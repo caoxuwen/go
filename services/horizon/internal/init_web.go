@@ -156,6 +156,7 @@ func initWebActions(app *App) {
 	if app.config.FriendbotURL != nil {
 		redirectFriendbot := func(w http.ResponseWriter, r *http.Request) {
 			redirectURL := app.config.FriendbotURL.String() + "?" + r.URL.RawQuery
+			w.Header().Set("Access-Control-Allow-Origin", "*")
 			http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 		}
 		r.Post("/friendbot", redirectFriendbot)
